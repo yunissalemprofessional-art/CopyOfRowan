@@ -255,6 +255,23 @@ img, video, canvas, svg { max-width: 100%; }
   content: ''; width: 24px; height: 1px; background: var(--border-strong);
 }
 
+/* ----- Body checkboxes ----- */
+.po-body-list { display: flex; flex-direction: column; gap: 10px; }
+.po-body-row {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 14px; font-weight: 500;
+  color: var(--text-2);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.po-body-row input[type="checkbox"] {
+  width: 18px; height: 18px;
+  accent-color: var(--good);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.po-body-row.checked { color: var(--text-1); }
+
 /* ----- Bodyweight banner ----- */
 .po-bw-banner {
   background: rgba(255,255,255,0.04);
@@ -1366,6 +1383,15 @@ img, video, canvas, svg { max-width: 100%; }
       </button>
       <div class="po-tw-past-body" id="poTwPastBody" style="display:none"></div>
     </div>
+
+    <!-- Body — resets uncompleted every day -->
+    <div class="po-sub-section">
+      <div class="po-sub-title">Body</div>
+      <div class="po-body-list" id="bodyList">
+        <label class="po-body-row"><input type="checkbox" data-body="am"> Wollas Method — AM</label>
+        <label class="po-body-row"><input type="checkbox" data-body="pm"> Wollas Method — PM</label>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1803,6 +1829,30 @@ img, video, canvas, svg { max-width: 100%; }
     renderExerciseCards();
     renderTodaysWorkout();
     renderPastWorkouts();
+    renderBody();
+  }
+
+  // ============================================================
+  // BODY — two daily checkboxes, reset uncompleted every day. Stored
+  // as one key holding {dateKey: {am, pm}}, same shape as doneDays.
+  // ============================================================
+  const BODY_KEY = 'po_coach_body';
+  function loadBodyDays() {
+    try { const raw = localStorage.getItem(BODY_KEY); return raw ? JSON.parse(raw) : {}; }
+    catch (e) { return {}; }
+  }
+  function saveBodyDays(d) {
+    try { localStorage.setItem(BODY_KEY, JSON.stringify(d)); } catch (e) {}
+  }
+  let bodyDays = loadBodyDays();
+  function renderBody() {
+    const todayKey = wtDateKey(new Date());
+    const today = bodyDays[todayKey] || {};
+    document.querySelectorAll('#bodyList input[type="checkbox"]').forEach((cb) => {
+      const on = !!today[cb.dataset.body];
+      cb.checked = on;
+      cb.closest('.po-body-row').classList.toggle('checked', on);
+    });
   }
 
   // ============================================================
@@ -1959,6 +2009,16 @@ img, video, canvas, svg { max-width: 100%; }
     body.style.display = open ? 'none' : 'flex';
     body.style.flexDirection = 'column';
     toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
+  });
+  $('bodyList').addEventListener('change', (e) => {
+    const cb = e.target.closest('input[type="checkbox"]');
+    if (!cb) return;
+    const todayKey = wtDateKey(new Date());
+    const today = bodyDays[todayKey] || {};
+    if (cb.checked) today[cb.dataset.body] = true; else delete today[cb.dataset.body];
+    bodyDays[todayKey] = today;
+    saveBodyDays(bodyDays);
+    cb.closest('.po-body-row').classList.toggle('checked', cb.checked);
   });
   // ============================================================
   // EVENT WIRING — one delegated listener covers every exercise card,
@@ -2919,7 +2979,7 @@ img, video, canvas, svg { max-width: 100%; }
   const SUPABASE_URL = 'https://vqelzrknnplxgkddcgyc.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_L0QPuE88RMkKPjswFEqlWw_gjMckSVk';
   const APP_KEY = 'po-coach';
-  const PC_SYNCED_KEYS = ['po_coach_v1', 'po_coach_workout_done', 'po_coach_weights', 'po_coach_photos'];
+  const PC_SYNCED_KEYS = ['po_coach_v1', 'po_coach_workout_done', 'po_coach_weights', 'po_coach_photos', 'po_coach_body'];
 
   let pcSupa = null;
   let pcPushTimer = null;
@@ -2983,6 +3043,7 @@ img, video, canvas, svg { max-width: 100%; }
       const raw = localStorage.getItem(PHOTO_KEY);
       photos = raw ? JSON.parse(raw) : [];
     } catch { photos = []; }
+    try { bodyDays = loadBodyDays(); } catch {}
     try { renderAll(); } catch {}
     try { wtRender(); } catch {}
     try { photosRender(); } catch {}
