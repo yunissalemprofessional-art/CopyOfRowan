@@ -260,6 +260,86 @@ main {
   white-space: nowrap;
 }
 
+/* ----- Nutrition ----- */
+.nutri-totals { display: flex; flex-direction: column; gap: 12px; margin-bottom: 4px; }
+.nutri-stat-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 6px; font-size: 12px;
+}
+.nutri-stat-label {
+  color: var(--text-tertiary); font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; font-size: 10.5px;
+}
+.nutri-stat-val {
+  font-family: var(--font-mono); color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  display: flex; align-items: center; gap: 4px;
+}
+.nutri-stat-val input[type="number"] {
+  width: 54px; padding: 3px 6px; text-align: center;
+  border-radius: 6px; border: 1px solid var(--border-strong);
+  background: var(--bg-input); color: var(--text-primary);
+  font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+}
+.nutri-stat-bar-wrap {
+  height: 6px; background: rgba(255,255,255,0.04);
+  border-radius: 3px; overflow: hidden;
+}
+.nutri-stat-bar-fill {
+  height: 100%; background: linear-gradient(90deg, var(--accent), #6BE3A4);
+  border-radius: 3px; transition: width 0.3s;
+}
+
+.nutri-add-row {
+  display: flex; flex-direction: column; gap: 8px;
+  margin: 16px 0 12px; padding-top: 14px;
+  border-top: 1px solid var(--border-soft);
+}
+.nutri-add-row input {
+  padding: 10px 12px; border-radius: 8px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-input); color: var(--text-primary);
+  font-family: inherit; font-size: 13px;
+}
+.nutri-add-row input:focus {
+  outline: none; border-color: rgba(255,255,255,0.40);
+  background: var(--bg-input-focus);
+}
+.nutri-input-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.nutri-input-grid input { text-align: center; }
+.nutri-add-btn {
+  padding: 11px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.85);
+  background: linear-gradient(180deg, #FFFFFF 0%, #E8E5DD 100%);
+  color: #0A0A0B; font-family: inherit; font-size: 13px; font-weight: 700;
+  cursor: pointer;
+}
+.nutri-add-btn:active { transform: scale(0.98); }
+
+.nutri-meal-list { display: flex; flex-direction: column; gap: 6px; }
+.nutri-meal-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: 10px;
+  background: var(--bg-secondary);
+  font-size: 13px;
+}
+.nutri-meal-name {
+  flex: 1; min-width: 0; color: var(--text-primary); font-weight: 600;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.nutri-meal-macros {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--text-tertiary); white-space: nowrap;
+}
+.nutri-meal-del {
+  background: transparent; border: none; color: var(--text-tertiary);
+  cursor: pointer; font-size: 16px; padding: 2px 6px; line-height: 1;
+}
+.nutri-meal-del:hover { color: #FF6B6B; }
+.nutri-empty {
+  text-align: center; font-size: 12px; font-style: italic;
+  color: var(--text-tertiary); padding: 10px 0;
+}
+
 .attribution {
   text-align: center; margin-top: 28px;
   font-family: var(--font-mono);
@@ -332,6 +412,59 @@ main {
       <div class="sleep-hist-title">Last 7 days</div>
       <div id="sleepHistory"></div>
     </div>
+  </div>
+
+  <div class="section-title" style="margin-top:32px">Nutrition</div>
+  <div class="stack-card">
+    <div class="stack-head">
+      <div class="sf-eyebrow">Nutrition</div>
+      <div class="sf-title">Today's meals</div>
+    </div>
+
+    <div class="nutri-totals">
+      <div>
+        <div class="nutri-stat-head">
+          <span class="nutri-stat-label">Calories</span>
+          <span class="nutri-stat-val"><span id="nutri_calories_val">0</span> / <input type="number" id="nutri_calories_target"></span>
+        </div>
+        <div class="nutri-stat-bar-wrap"><div class="nutri-stat-bar-fill" id="nutri_calories_bar" style="width:0%"></div></div>
+      </div>
+      <div>
+        <div class="nutri-stat-head">
+          <span class="nutri-stat-label">Protein (g)</span>
+          <span class="nutri-stat-val"><span id="nutri_protein_val">0</span> / <input type="number" id="nutri_protein_target"></span>
+        </div>
+        <div class="nutri-stat-bar-wrap"><div class="nutri-stat-bar-fill" id="nutri_protein_bar" style="width:0%"></div></div>
+      </div>
+      <div>
+        <div class="nutri-stat-head">
+          <span class="nutri-stat-label">Carbs (g)</span>
+          <span class="nutri-stat-val"><span id="nutri_carbs_val">0</span> / <input type="number" id="nutri_carbs_target"></span>
+        </div>
+        <div class="nutri-stat-bar-wrap"><div class="nutri-stat-bar-fill" id="nutri_carbs_bar" style="width:0%"></div></div>
+      </div>
+      <div>
+        <div class="nutri-stat-head">
+          <span class="nutri-stat-label">Fat (g)</span>
+          <span class="nutri-stat-val"><span id="nutri_fat_val">0</span> / <input type="number" id="nutri_fat_target"></span>
+        </div>
+        <div class="nutri-stat-bar-wrap"><div class="nutri-stat-bar-fill" id="nutri_fat_bar" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <div class="nutri-add-row">
+      <input type="text" id="mealName" placeholder="Meal name">
+      <div class="nutri-input-grid">
+        <input type="number" id="mealCalories" placeholder="Cal">
+        <input type="number" id="mealProtein" placeholder="Protein g">
+        <input type="number" id="mealCarbs" placeholder="Carbs g">
+        <input type="number" id="mealFat" placeholder="Fat g">
+      </div>
+      <button type="button" class="nutri-add-btn" id="mealAddBtn">+ Add Meal</button>
+    </div>
+
+    <div class="nutri-meal-list" id="mealList"></div>
+    <div class="nutri-empty" id="nutriEmpty">No meals logged today.</div>
   </div>
 
   <section id="water" class="water-embed">
@@ -527,9 +660,116 @@ main {
 
   renderSleep();
 
+  // ============================================================
+  // NUTRITION — manual meal entry, resets daily (same getActiveDate()
+  // boundary as Stack/Sleep). Running totals shown against editable
+  // daily targets, defaulting to Calories 3500 / Protein 260g /
+  // Carbs 395g / Fat 97g.
+  // ============================================================
+  const NUTRI_DEFAULT_TARGETS = { calories: 3500, protein: 260, carbs: 395, fat: 97 };
+  const NUTRI_MACROS = ['calories', 'protein', 'carbs', 'fat'];
+
+  function nutriKey(dateStr) { return 'nutrition:' + dateStr; }
+  function getMeals(dateStr) { return storeGet(nutriKey(dateStr)) || []; }
+  function setMeals(dateStr, arr) { storeSet(nutriKey(dateStr), arr); }
+  function getNutriTargets() {
+    const t = storeGet('nutrition_targets_v1');
+    return Object.assign({}, NUTRI_DEFAULT_TARGETS, (t && typeof t === 'object') ? t : {});
+  }
+  function setNutriTargets(t) { storeSet('nutrition_targets_v1', t); }
+  function escapeHtmlNutri(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  }
+
+  // Totals/bars depend on meals + targets; the meal list DOM only
+  // depends on meals. Keeping these separate means editing a target
+  // number never rebuilds the meal list — rebuilding it on every
+  // keystroke risked eating a delete-button click if its native
+  // "change" (fired on blur, i.e. exactly when you click elsewhere)
+  // landed mid-click and swapped the button out from under the cursor.
+  function renderNutriTotals() {
+    const dateStr = getActiveDate();
+    const meals = getMeals(dateStr);
+    const targets = getNutriTargets();
+    const totals = meals.reduce((acc, m) => {
+      NUTRI_MACROS.forEach(k => { acc[k] += Number(m[k]) || 0; });
+      return acc;
+    }, { calories: 0, protein: 0, carbs: 0, fat: 0 });
+
+    NUTRI_MACROS.forEach((macro) => {
+      document.getElementById('nutri_' + macro + '_val').textContent = totals[macro];
+      const targetInput = document.getElementById('nutri_' + macro + '_target');
+      if (document.activeElement !== targetInput) targetInput.value = targets[macro];
+      const pct = targets[macro] > 0 ? Math.min(100, (totals[macro] / targets[macro]) * 100) : 0;
+      document.getElementById('nutri_' + macro + '_bar').style.width = pct + '%';
+    });
+  }
+  function renderMealList() {
+    const dateStr = getActiveDate();
+    const meals = getMeals(dateStr);
+    const listEl = document.getElementById('mealList');
+    const emptyEl = document.getElementById('nutriEmpty');
+    if (!meals.length) {
+      listEl.innerHTML = '';
+      emptyEl.style.display = 'block';
+      return;
+    }
+    emptyEl.style.display = 'none';
+    listEl.innerHTML = meals.map((m, i) => (
+      '<div class="nutri-meal-row">'
+      + '<div class="nutri-meal-name">' + escapeHtmlNutri(m.name || 'Meal') + '</div>'
+      + '<div class="nutri-meal-macros">' + (m.calories || 0) + ' cal · ' + (m.protein || 0) + 'p ' + (m.carbs || 0) + 'c ' + (m.fat || 0) + 'f</div>'
+      + '<button type="button" class="nutri-meal-del" data-i="' + i + '" aria-label="Delete">×</button>'
+      + '</div>'
+    )).join('');
+    listEl.querySelectorAll('.nutri-meal-del').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const arr = getMeals(dateStr);
+        arr.splice(parseInt(btn.dataset.i, 10), 1);
+        setMeals(dateStr, arr);
+        renderNutrition();
+      });
+    });
+  }
+  function renderNutrition() {
+    renderNutriTotals();
+    renderMealList();
+  }
+
+  document.getElementById('mealAddBtn').addEventListener('click', () => {
+    const name = document.getElementById('mealName').value.trim();
+    const calories = parseFloat(document.getElementById('mealCalories').value) || 0;
+    const protein  = parseFloat(document.getElementById('mealProtein').value) || 0;
+    const carbs    = parseFloat(document.getElementById('mealCarbs').value) || 0;
+    const fat      = parseFloat(document.getElementById('mealFat').value) || 0;
+    if (!name && !calories && !protein && !carbs && !fat) return;
+    const dateStr = getActiveDate();
+    const arr = getMeals(dateStr);
+    arr.push({ name: name || 'Meal', calories, protein, carbs, fat });
+    setMeals(dateStr, arr);
+    document.getElementById('mealName').value = '';
+    document.getElementById('mealCalories').value = '';
+    document.getElementById('mealProtein').value = '';
+    document.getElementById('mealCarbs').value = '';
+    document.getElementById('mealFat').value = '';
+    renderNutrition();
+  });
+
+  NUTRI_MACROS.forEach((macro) => {
+    document.getElementById('nutri_' + macro + '_target').addEventListener('change', (e) => {
+      const targets = getNutriTargets();
+      targets[macro] = parseFloat(e.target.value) || NUTRI_DEFAULT_TARGETS[macro];
+      setNutriTargets(targets);
+      renderNutriTotals();
+    });
+  });
+
+  renderNutrition();
+
   window.addEventListener('storage', () => {
     render();
     renderSleep();
+    renderNutrition();
   });
 })();
 </script>
@@ -539,8 +779,8 @@ document.addEventListener('DOMContentLoaded', function () {
   if (typeof initCloudSync !== 'function') return;
   initCloudSync({
     appKey: 'health',
-    syncedKeys: ['po_water_v1', 'sleep_streak_v1'],
-    syncedPrefixes: ['stack:taken:', 'sleep:'],
+    syncedKeys: ['po_water_v1', 'sleep_streak_v1', 'nutrition_targets_v1'],
+    syncedPrefixes: ['stack:taken:', 'sleep:', 'nutrition:'],
     onApplied: function () { window.dispatchEvent(new Event('storage')); }
   });
 });
