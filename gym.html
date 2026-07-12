@@ -10,9 +10,9 @@
 <!-- =============================================================
      EDIT THIS BLOCK TO MAKE THE APP YOURS.
      Other people who fork this repo only need to change the values
-     below — gyms, days, units, and starter exercises. Everything
-     else (logs, edits, additions you make in the app) is saved to
-     the browser's local storage on each device.
+     below — days, units, and starter exercises. Everything else
+     (logs, edits, additions you make in the app) is saved to the
+     browser's local storage on each device.
      ============================================================= -->
 <script>
 const CONFIG = {
@@ -20,13 +20,6 @@ const CONFIG = {
 
   // Weight unit shown everywhere. "kg" or "lb".
   units: "kg",
-
-  // Gyms you train at. Add as many as you want.
-  // `id` must be a short unique slug (no spaces). `name` is what people see.
-  gyms: [
-    { id: "home",  name: "Home Gym" },
-    { id: "comm",  name: "Commercial Gym" }
-  ],
 
   // Training split. Most people use Push/Pull/Legs but you can rename
   // these to "Upper", "Lower", "Full Body", "Day A", anything.
@@ -36,18 +29,18 @@ const CONFIG = {
     { id: "legs", name: "Legs" }
   ],
 
-  // Split rotation — the order your training days cycle through. Use day
-  // ids from `days` above, plus "rest" for off-days. The pill at the top
-  // of the app reads this + splitAnchor to compute "what day is today".
-  splitRotation: ["push", "pull", "legs", "rest"],
+  // Split rotation — the order your training days cycle through, repeating
+  // forever. Today's day is computed automatically from this + splitAnchor,
+  // no manual picking. Edit the rotation any time in Settings.
+  splitRotation: ["push", "pull", "legs"],
 
   // Anchor: pair a real calendar date with which split day fell on it.
   // The rotation advances from this point. Set `date` to a recent day
   // when you knew what split you were on, and `splitId` to that day.
-  // Edit this if your split drifts.
+  // Edit this in Settings if your split drifts.
   splitAnchor: {
-    date: "2026-05-12",
-    splitId: "rest"
+    date: "2026-07-12",
+    splitId: "push"
   },
 
   // Progression rule: hit this many reps on the top set → coach tells you
@@ -65,9 +58,9 @@ const CONFIG = {
     windowDays: 30           // window to compute weight + strength change
   },
 
-  // Starter exercise list. Each one needs:
+  // Starter exercise list — a beginner Push/Pull/Legs machine + free-weight
+  // routine. Each one needs:
   //   name        — what shows in the dropdown
-  //   gym         — one of the gym ids above, or "both"
   //   day         — one of the day ids above
   //   repMin      — bottom of your target rep range
   //   repMax      — top of your target rep range
@@ -78,15 +71,20 @@ const CONFIG = {
   // First-run defaults. Once a user logs anything, they edit through
   // the in-app + / gear buttons; this block stays as the seed.
   defaultExercises: [
-    { name: "Bench press",     gym: "comm", day: "push", repMin: 5, repMax: 8,  step: 2.5, startWeight: 60 },
-    { name: "Overhead press",  gym: "comm", day: "push", repMin: 5, repMax: 8,  step: 2.5, startWeight: 35 },
-    { name: "Tricep pushdown", gym: "comm", day: "push", repMin: 8, repMax: 12, step: 2.5, startWeight: 25 },
-    { name: "Pull-ups",        gym: "both", day: "pull", repMin: 5, repMax: 10, step: 1,   startWeight: 0, bw: true },
-    { name: "Barbell row",     gym: "comm", day: "pull", repMin: 6, repMax: 10, step: 2.5, startWeight: 50 },
-    { name: "Bicep curl",      gym: "comm", day: "pull", repMin: 8, repMax: 12, step: 1.25,startWeight: 15 },
-    { name: "Back squat",      gym: "comm", day: "legs", repMin: 5, repMax: 8,  step: 5,   startWeight: 80 },
-    { name: "Romanian deadlift", gym: "comm", day: "legs", repMin: 6, repMax: 10, step: 5, startWeight: 60 },
-    { name: "Leg press",       gym: "comm", day: "legs", repMin: 8, repMax: 12, step: 5,   startWeight: 100 }
+    { name: "Barbell Bench Press",       day: "push", repMin: 5,  repMax: 8,  step: 2.5,  startWeight: 60 },
+    { name: "Dumbbell Shoulder Press",    day: "push", repMin: 6,  repMax: 10, step: 2.5,  startWeight: 20 },
+    { name: "Pec Deck Fly",               day: "push", repMin: 10, repMax: 15, step: 5,    startWeight: 30 },
+    { name: "Dumbbell Lateral Raise",     day: "push", repMin: 10, repMax: 15, step: 1.25, startWeight: 7.5 },
+    { name: "Triceps Rope Pushdown",      day: "push", repMin: 8,  repMax: 12, step: 2.5,  startWeight: 20 },
+    { name: "Cable Lat Pulldown",         day: "pull", repMin: 6,  repMax: 10, step: 2.5,  startWeight: 40 },
+    { name: "Seated Cable Row (V-grip)",  day: "pull", repMin: 6,  repMax: 10, step: 2.5,  startWeight: 40 },
+    { name: "Dumbbell Shrug",             day: "pull", repMin: 10, repMax: 15, step: 2.5,  startWeight: 15 },
+    { name: "Dumbbell Hammer Curl",       day: "pull", repMin: 8,  repMax: 12, step: 1.25, startWeight: 10 },
+    { name: "Face Pull",                  day: "pull", repMin: 12, repMax: 15, step: 2.5,  startWeight: 15 },
+    { name: "Leg Press (Machine)",        day: "legs", repMin: 8,  repMax: 12, step: 10,   startWeight: 80 },
+    { name: "Lying Leg Curl (Machine)",   day: "legs", repMin: 8,  repMax: 12, step: 2.5,  startWeight: 20 },
+    { name: "Leg Extension (Machine)",    day: "legs", repMin: 10, repMax: 15, step: 2.5,  startWeight: 25 },
+    { name: "Standing Calf Raise (Machine)", day: "legs", repMin: 10, repMax: 15, step: 5,  startWeight: 40 }
   ]
 };
 </script>
@@ -193,30 +191,6 @@ img, video, canvas, svg { max-width: 100%; }
   justify-content: center;
 }
 .tab-icon svg { width: 100%; height: 100%; display: block; }
-.po-day-pill {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 6px 12px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  color: var(--text-2);
-  font-family: var(--font-mono);
-  font-size: 11px; font-weight: 700; letter-spacing: 0.10em;
-  text-transform: uppercase;
-  cursor: pointer; margin-bottom: 10px;
-  transition: background 0.18s, border-color 0.18s, color 0.18s;
-  -webkit-tap-highlight-color: transparent;
-}
-.po-day-pill:hover {
-  background: rgba(255,255,255,0.07);
-  border-color: var(--border-strong);
-  color: var(--text-1);
-}
-.po-day-date { color: var(--text-2); }
-.po-day-sep { color: var(--text-4); }
-.po-day-split { color: var(--good); font-weight: 800; }
-.po-day-split.is-rest { color: #7DD3FC; }
-
 .po-header {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 18px;
@@ -246,34 +220,11 @@ img, video, canvas, svg { max-width: 100%; }
   margin-bottom: 14px;
 }
 
-/* ----- Filters (Gym + Day segmented controls) ----- */
-.po-filters { margin-bottom: 18px; }
-.po-seg-row {
-  display: flex; gap: 10px; margin-bottom: 8px; align-items: center;
-}
-.po-seg-label {
-  font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
-  text-transform: uppercase; color: var(--text-3);
-  min-width: 36px;
-}
-.po-seg-control {
-  display: flex; flex: 1;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--border);
-  border-radius: 12px; padding: 4px; gap: 3px;
-}
-.po-seg-btn {
-  flex: 1; padding: 10px 8px; border: none; background: transparent;
-  color: var(--text-3); border-radius: 8px;
-  font-family: inherit; font-size: 12.5px; font-weight: 600;
-  cursor: pointer; transition: background 0.15s, color 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
-.po-seg-btn:hover { color: var(--text-2); background: rgba(255,255,255,0.04); }
-.po-seg-btn.active {
-  background: linear-gradient(180deg, #ffffff 0%, #e8e5dd 100%);
-  color: #0a0a0b;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 4px 12px rgba(0,0,0,0.35);
+/* ----- Today heading (replaces the old Gym + Day segmented controls) ----- */
+.po-today-heading {
+  font-size: 15px; font-weight: 700; letter-spacing: -0.01em;
+  color: var(--text-1);
+  margin-bottom: 18px;
 }
 
 /* ----- Sub-section title ----- */
@@ -685,14 +636,6 @@ img, video, canvas, svg { max-width: 100%; }
 
   /* Cards — tighter padding so content has room */
   .card { padding: 16px 14px; margin-bottom: 12px; }
-
-  /* Gym / Day segmented controls — let labels truncate instead of pushing wider */
-  .po-seg-row { gap: 8px; }
-  .po-seg-control { padding: 3px; gap: 2px; }
-  .po-seg-btn {
-    padding: 9px 6px; font-size: 12px;
-    min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
 
   /* Exercise picker */
   .po-exercise-bar { gap: 6px; }
@@ -1268,12 +1211,6 @@ img, video, canvas, svg { max-width: 100%; }
 <body>
 
 <div class="po-shell">
-  <button class="po-day-pill" type="button" id="dayPill" title="Tap to switch the day filter to today's split">
-    <span class="po-day-date" id="dayPillDate">—</span>
-    <span class="po-day-sep">·</span>
-    <span class="po-day-split" id="dayPillSplit">—</span>
-  </button>
-
   <!-- WEIGHT + PROGRESS PHOTOS -->
   <div class="wt-section">
     <div class="wt-divider"><span>WEIGHT</span></div>
@@ -1440,17 +1377,7 @@ img, video, canvas, svg { max-width: 100%; }
   </div>
 
   <div class="card">
-    <!-- Filters -->
-    <div class="po-filters">
-      <div class="po-seg-row">
-        <span class="po-seg-label">Gym</span>
-        <div class="po-seg-control" id="gymSeg"></div>
-      </div>
-      <div class="po-seg-row">
-        <span class="po-seg-label">Day</span>
-        <div class="po-seg-control" id="daySeg"></div>
-      </div>
-    </div>
+    <div class="po-today-heading" id="todayHeading">Today: —</div>
 
     <!-- Exercise -->
     <div class="po-sub-section">
@@ -1509,46 +1436,56 @@ img, video, canvas, svg { max-width: 100%; }
       <div id="rxWrap"></div>
     </div>
 
-    <!-- Stats -->
+    <!-- Details — Stats / Trend / History, collapsed by default so the
+         main flow is just: exercise, last time, weight, reps, log. -->
     <div class="po-sub-section">
-      <div class="po-sub-title">Stats</div>
-      <div class="po-stats-row">
-        <div class="po-stat-box">
-          <div class="po-stat-label" id="oneRmLabel">Est. 1RM</div>
-          <div class="po-stat-val" id="oneRm">—<span class="po-unit" id="oneRmUnit">kg</span></div>
+      <button type="button" class="po-tw-past-toggle" id="detailsToggle" aria-expanded="false">
+        <span>Details</span>
+        <span class="po-tw-past-arrow" id="detailsArrow">▾</span>
+      </button>
+      <div id="detailsBody" style="display:none">
+        <!-- Stats -->
+        <div class="po-sub-section">
+          <div class="po-sub-title">Stats</div>
+          <div class="po-stats-row">
+            <div class="po-stat-box">
+              <div class="po-stat-label" id="oneRmLabel">Est. 1RM</div>
+              <div class="po-stat-val" id="oneRm">—<span class="po-unit" id="oneRmUnit">kg</span></div>
+            </div>
+            <div class="po-stat-box">
+              <div class="po-stat-label">Best set</div>
+              <div class="po-stat-val" id="bestSet">—</div>
+            </div>
+            <div class="po-stat-box">
+              <div class="po-stat-label">Sessions</div>
+              <div class="po-stat-val" id="sessionCount">—</div>
+            </div>
+          </div>
         </div>
-        <div class="po-stat-box">
-          <div class="po-stat-label">Best set</div>
-          <div class="po-stat-val" id="bestSet">—</div>
-        </div>
-        <div class="po-stat-box">
-          <div class="po-stat-label">Sessions</div>
-          <div class="po-stat-val" id="sessionCount">—</div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Trend -->
-    <div class="po-sub-section">
-      <div class="po-sub-title">Trend (last 10 sessions)</div>
-      <div class="po-spark-wrap">
-        <svg class="po-spark-svg" id="sparkline" viewBox="0 0 300 60" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="sparkGrad" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stop-color="rgba(255,255,255,0.18)"/>
-              <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-            </linearGradient>
-          </defs>
-        </svg>
-        <div class="po-spark-empty" id="sparkEmpty">Need 2+ sessions for trend</div>
-      </div>
-    </div>
+        <!-- Trend -->
+        <div class="po-sub-section">
+          <div class="po-sub-title">Trend (last 10 sessions)</div>
+          <div class="po-spark-wrap">
+            <svg class="po-spark-svg" id="sparkline" viewBox="0 0 300 60" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="sparkGrad" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stop-color="rgba(255,255,255,0.18)"/>
+                  <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="po-spark-empty" id="sparkEmpty">Need 2+ sessions for trend</div>
+          </div>
+        </div>
 
-    <!-- History -->
-    <div class="po-sub-section">
-      <div class="po-sub-title">History</div>
-      <div id="historyCard">
-        <div class="po-empty">No logs yet.</div>
+        <!-- History -->
+        <div class="po-sub-section">
+          <div class="po-sub-title">History</div>
+          <div id="historyCard">
+            <div class="po-empty">No logs yet.</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1591,10 +1528,6 @@ img, video, canvas, svg { max-width: 100%; }
     <div class="po-field">
       <label style="font-size:11px;color:var(--text-3);font-weight:700;letter-spacing:0.04em;text-transform:uppercase">Name</label>
       <input type="text" id="exName" placeholder="e.g. Incline DB press">
-    </div>
-    <div class="po-field">
-      <label style="font-size:11px;color:var(--text-3);font-weight:700;letter-spacing:0.04em;text-transform:uppercase">Gym</label>
-      <div class="po-modal-seg" id="exGymSeg"></div>
     </div>
     <div class="po-field">
       <label style="font-size:11px;color:var(--text-3);font-weight:700;letter-spacing:0.04em;text-transform:uppercase">Day</label>
@@ -1661,15 +1594,15 @@ img, video, canvas, svg { max-width: 100%; }
     </div>
 
     <div class="po-set-section">
-      <h4>Gyms</h4>
-      <div class="po-set-list" id="setGyms"></div>
-      <button class="po-add-row-btn" id="setAddGym">+ Add gym</button>
-    </div>
-
-    <div class="po-set-section">
       <h4>Days</h4>
       <div class="po-set-list" id="setDays"></div>
       <button class="po-add-row-btn" id="setAddDay">+ Add day</button>
+    </div>
+
+    <div class="po-set-section">
+      <h4>Split rotation</h4>
+      <p style="font-size:12px;color:var(--text-3);margin:-4px 0 10px;line-height:1.4;">Correct drift or reorder your push/pull/legs cycle.</p>
+      <button class="po-btn-secondary" id="setEditRotation">Edit rotation</button>
     </div>
 
     <div class="po-set-section">
@@ -1712,20 +1645,30 @@ img, video, canvas, svg { max-width: 100%; }
   function normalize(s) {
     s = s || {};
     s.units = s.units || CONFIG.units || 'kg';
-    s.gyms  = (Array.isArray(s.gyms)  && s.gyms.length)  ? s.gyms  : CONFIG.gyms.slice();
     s.days  = (Array.isArray(s.days)  && s.days.length)  ? s.days  : CONFIG.days.slice();
     s.exercises = Array.isArray(s.exercises) ? s.exercises : buildDefaultExercises();
     s.logs = (s.logs && typeof s.logs === 'object') ? s.logs : {};
-    s.filterGym = s.filterGym || s.gyms[0].id;
-    s.filterDay = s.filterDay || s.days[0].id;
-    // Split rotation lives in state so the user can edit it via the pill modal.
-    // Stored as a plain array of names (e.g. ["Push", "Pull", "Legs", "Rest"]).
+    // Gym concept removed — drop any leftover fields from older saves.
+    delete s.gyms; delete s.filterGym; delete s.filterDay; delete s._userPickedDay;
+    // Split rotation lives in state so the user can edit it via Settings.
+    // Stored as a plain array of names (e.g. ["Push", "Pull", "Legs"]).
     if (!Array.isArray(s.splitRotation) || !s.splitRotation.length) {
-      s.splitRotation = (CONFIG.splitRotation || ['Push', 'Pull', 'Legs', 'Rest']).map(x =>
+      s.splitRotation = (CONFIG.splitRotation || ['Push', 'Pull', 'Legs']).map(x =>
         // CONFIG used ids — map id → display name where possible
         (CONFIG.days || []).find(d => d.id === x) ? (CONFIG.days.find(d => d.id === x).name) :
         (x === 'rest' ? 'Rest' : x.charAt(0).toUpperCase() + x.slice(1))
       );
+    } else {
+      // One-time migration: if this is still the untouched old default
+      // (Push/Pull/Legs/Rest), drop the rest day for the new pure 3-day
+      // cycle. Any rotation the user has actually customized is left alone.
+      const isOldDefault = s.splitRotation.length === 4 &&
+        ['push', 'pull', 'legs'].every((n, i) => (s.splitRotation[i] || '').toLowerCase() === n) &&
+        (s.splitRotation[3] || '').toLowerCase() === 'rest';
+      if (isOldDefault) {
+        s.splitRotation = s.splitRotation.slice(0, 3);
+        if (s.splitAnchor && s.splitAnchor.index != null) s.splitAnchor.index = s.splitAnchor.index % 3;
+      }
     }
     if (!s.splitAnchor || !s.splitAnchor.date || s.splitAnchor.index == null) {
       // Map old anchor-by-id to new anchor-by-index, or default to today=index 0.
@@ -1756,13 +1699,20 @@ img, video, canvas, svg { max-width: 100%; }
   const $ = (id) => document.getElementById(id);
   function unit() { return state.units; }
   function uid() { return 'ex_' + Date.now() + '_' + Math.floor(Math.random() * 9999); }
-  function gymName(id) { const g = state.gyms.find(x => x.id === id); return g ? g.name : id; }
   function dayName(id) { const d = state.days.find(x => x.id === id); return d ? d.name : id; }
   function estimate1RM(w, r) { if (r < 2) return w; return w * (1 + r / 30); }
   function roundToStep(v, s) { return Math.round(v / s) * s; }
+  // Today's training day is always computed from the split rotation — no
+  // manual picking. Falls back to the first configured day if today's
+  // split name (e.g. a custom "Rest") doesn't match any exercise day.
+  function currentDayId() {
+    const split = todaySplit();
+    const match = state.days.find(d => d.name.toLowerCase() === (split.name || '').toLowerCase());
+    return match ? match.id : (state.days[0] ? state.days[0].id : null);
+  }
   function getFiltered() {
-    return state.exercises.filter(e =>
-      (e.gym === state.filterGym || e.gym === 'both') && e.day === state.filterDay);
+    const dayId = currentDayId();
+    return state.exercises.filter(e => e.day === dayId);
   }
   function getCurrentEx() {
     const f = getFiltered();
@@ -1805,25 +1755,9 @@ img, video, canvas, svg { max-width: 100%; }
   // ============================================================
   // RENDER
   // ============================================================
-  function renderFilters() {
-    $('gymSeg').innerHTML = state.gyms.map(g =>
-      '<button class="po-seg-btn ' + (g.id === state.filterGym ? 'active' : '') + '" data-gym="' + g.id + '">' + escape(g.name) + '</button>'
-    ).join('');
-    $('daySeg').innerHTML = state.days.map(d =>
-      '<button class="po-seg-btn ' + (d.id === state.filterDay ? 'active' : '') + '" data-day="' + d.id + '">' + escape(d.name) + '</button>'
-    ).join('');
-    $('gymSeg').querySelectorAll('.po-seg-btn').forEach(b => {
-      b.addEventListener('click', () => { state.filterGym = b.dataset.gym; state.currentEx = null; saveState(); renderAll(); });
-    });
-    $('daySeg').querySelectorAll('.po-seg-btn').forEach(b => {
-      b.addEventListener('click', () => {
-        state.filterDay = b.dataset.day;
-        state.currentEx = null;
-        // User has now manually picked a day — stop auto-overriding to today's split.
-        state._userPickedDay = true;
-        saveState(); renderAll();
-      });
-    });
+  function renderTodayHeading() {
+    const split = todaySplit();
+    $('todayHeading').textContent = 'Today: ' + (split.name || '—');
   }
   function renderSelect() {
     const sel = $('exSelect');
@@ -1842,8 +1776,7 @@ img, video, canvas, svg { max-width: 100%; }
     if (!f.find(e => e.id === state.currentEx)) state.currentEx = f[0].id;
     sel.innerHTML = f.map(e => {
       const wLbl = e.bw ? ' · BW' : (e.startWeight ? ' · ' + e.startWeight + unit() : '');
-      const sh = e.gym === 'both' ? ' ★' : '';
-      return '<option value="' + e.id + '"' + (e.id === state.currentEx ? ' selected' : '') + '>' + escape(e.name) + wLbl + sh + '</option>';
+      return '<option value="' + e.id + '"' + (e.id === state.currentEx ? ' selected' : '') + '>' + escape(e.name) + wLbl + '</option>';
     }).join('');
   }
   function renderForm() {
@@ -1884,7 +1817,7 @@ img, video, canvas, svg { max-width: 100%; }
   function renderRx() {
     const wrap = $('rxWrap');
     const ex = getCurrentEx();
-    if (!ex) { wrap.innerHTML = '<div class="po-rx-empty">Pick a gym and day above.</div>'; return; }
+    if (!ex) { wrap.innerHTML = '<div class="po-rx-empty">No exercises for today — tap + to add one.</div>'; return; }
     const logs = getLogs();
     const rx = getRx(ex, logs);
     if (!rx) {
@@ -2005,25 +1938,6 @@ img, video, canvas, svg { max-width: 100%; }
       return { name: (state.splitRotation && state.splitRotation[0]) || '—', index: 0 };
     }
   }
-  function todayDateLabel() {
-    const d = new Date();
-    const dows = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
-    const mons = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-    return dows[d.getDay()] + ', ' + mons[d.getMonth()] + ' ' + d.getDate();
-  }
-  function isRestName(name) { return /^rest\b/i.test(name || ''); }
-  function splitLabel(name) {
-    if (!name) return '—';
-    return (isRestName(name) ? 'REST DAY' : (name + ' DAY')).toUpperCase();
-  }
-  function renderDayPill() {
-    const split = todaySplit();
-    $('dayPillDate').textContent = todayDateLabel();
-    const splitEl = $('dayPillSplit');
-    splitEl.textContent = splitLabel(split.name);
-    splitEl.classList.toggle('is-rest', isRestName(split.name));
-  }
-
   // Build the rep buttons based on the current exercise's repMin/repMax.
   // Always spans repMin → repMax + 2 (a small buffer for over-performing
   // sets that trigger the upgrade signal), capped at 16 buttons total so
@@ -2058,8 +1972,8 @@ img, video, canvas, svg { max-width: 100%; }
   }
 
   function renderAll() {
-    renderDayPill();
-    renderFilters(); renderSelect(); renderForm(); renderLastSet();
+    renderTodayHeading();
+    renderSelect(); renderForm(); renderLastSet();
     renderRepsRow();
     renderRx(); renderStats(); renderSparkline(); renderHistory();
     renderTodaysWorkout();
@@ -2228,26 +2142,17 @@ img, video, canvas, svg { max-width: 100%; }
     body.style.flexDirection = 'column';
     toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
   });
+  $('detailsToggle').addEventListener('click', () => {
+    const body = $('detailsBody');
+    const toggle = $('detailsToggle');
+    const open = body.style.display !== 'none';
+    body.style.display = open ? 'none' : 'block';
+    toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
+  });
 
   // ============================================================
   // EVENT WIRING
   // ============================================================
-  // Tap the day pill → opens the rotation editor so you can rename /
-  // reorder / add / delete entries (e.g. switch Push/Pull/Legs/Rest to
-  // Legs/Arms/Back/Chest). Long-press isn't a thing on web reliably so
-  // this is the only action — the day filter still auto-snaps on load.
-  $('dayPill').addEventListener('click', () => openRotationModal());
-
-  // First-load nicety: if today's split matches one of the day filters
-  // by name (case-insensitive) and the user hasn't manually picked one,
-  // pre-select that day.
-  (function autoSelectTodaySplit() {
-    const s = todaySplit();
-    if (!s.name || isRestName(s.name) || state._userPickedDay) return;
-    const match = state.days.find(d => d.name.toLowerCase() === s.name.toLowerCase());
-    if (match) state.filterDay = match.id;
-  })();
-
   $('exSelect').addEventListener('change', e => {
     state.currentEx = e.target.value; saveState(); renderAll();
   });
@@ -2295,21 +2200,11 @@ img, video, canvas, svg { max-width: 100%; }
   // EXERCISE MODAL (add / edit)
   // ============================================================
   let editingExId = null;
-  let modalGym = null, modalDay = null;
+  let modalDay = null;
   function renderModalSegs() {
-    $('exGymSeg').innerHTML = state.gyms.map(g =>
-      '<button data-gym="' + g.id + '" class="' + (modalGym === g.id ? 'active' : '') + '">' + escape(g.name) + '</button>'
-    ).join('') + '<button data-gym="both" class="' + (modalGym === 'both' ? 'active' : '') + '">Both</button>';
     $('exDaySeg').innerHTML = state.days.map(d =>
       '<button data-day="' + d.id + '" class="' + (modalDay === d.id ? 'active' : '') + '">' + escape(d.name) + '</button>'
     ).join('');
-    $('exGymSeg').querySelectorAll('button').forEach(b => {
-      b.addEventListener('click', () => {
-        modalGym = b.dataset.gym;
-        $('exGymSeg').querySelectorAll('button').forEach(x => x.classList.remove('active'));
-        b.classList.add('active');
-      });
-    });
     $('exDaySeg').querySelectorAll('button').forEach(b => {
       b.addEventListener('click', () => {
         modalDay = b.dataset.day;
@@ -2324,7 +2219,6 @@ img, video, canvas, svg { max-width: 100%; }
     $('exDelete').style.display = mode === 'edit' ? 'block' : 'none';
     if (mode === 'edit') {
       $('exName').value = ex.name;
-      modalGym = ex.gym;
       modalDay = ex.day;
       $('exBw').checked = !!ex.bw;
       $('exStartWeight').value = ex.startWeight || 0;
@@ -2333,8 +2227,7 @@ img, video, canvas, svg { max-width: 100%; }
       $('exStep').value = ex.step;
     } else {
       $('exName').value = '';
-      modalGym = state.filterGym;
-      modalDay = state.filterDay;
+      modalDay = currentDayId();
       $('exBw').checked = false;
       $('exStartWeight').value = 20;
       $('exRepMin').value = 6;
@@ -2361,13 +2254,12 @@ img, video, canvas, svg { max-width: 100%; }
   $('exModalSave').addEventListener('click', () => {
     const name = $('exName').value.trim();
     if (!name) { alert('Name is required.'); return; }
-    if (!modalGym) { alert('Pick a gym.'); return; }
     if (!modalDay) { alert('Pick a day.'); return; }
     const isBw = $('exBw').checked;
     const repMin = parseInt($('exRepMin').value, 10) || 6;
     const repMax = parseInt($('exRepMax').value, 10) || 8;
     const data = {
-      name, gym: modalGym, day: modalDay,
+      name, day: modalDay,
       bw: isBw,
       startWeight: isBw ? 0 : (parseFloat($('exStartWeight').value) || 0),
       repMin, repMax,
@@ -2380,8 +2272,6 @@ img, video, canvas, svg { max-width: 100%; }
       const ex = Object.assign({ id: uid() }, data);
       state.exercises.push(ex);
       state.currentEx = ex.id;
-      state.filterGym = (modalGym === 'both') ? state.filterGym : modalGym;
-      state.filterDay = modalDay;
     }
     saveState();
     $('exModalBg').classList.remove('show');
@@ -2400,7 +2290,7 @@ img, video, canvas, svg { max-width: 100%; }
   });
 
   // ============================================================
-  // ROTATION EDITOR (tap the day pill)
+  // ROTATION EDITOR (Settings → Edit rotation)
   // Edit the split cycle in place: rename, reorder, add, delete.
   // "Today is →" jumps the cycle anchor to any entry, so you can change
   // both the order AND which day in that order is "today".
@@ -2410,7 +2300,7 @@ img, video, canvas, svg { max-width: 100%; }
 
   function openRotationModal() {
     rotDraft = (state.splitRotation || []).slice();
-    if (!rotDraft.length) rotDraft = ['Push', 'Pull', 'Legs', 'Rest'];
+    if (!rotDraft.length) rotDraft = ['Push', 'Pull', 'Legs'];
     rotDraftTodayIdx = todaySplit().index;
     if (rotDraftTodayIdx >= rotDraft.length) rotDraftTodayIdx = 0;
     renderRotList();
@@ -2499,38 +2389,18 @@ img, video, canvas, svg { max-width: 100%; }
   });
 
   // ============================================================
-  // SETTINGS MODAL (gyms, days, units, data)
+  // SETTINGS MODAL (days, split rotation, units, data)
   // ============================================================
   function renderSettings() {
     $('setUnitsSeg').querySelectorAll('button').forEach(b => {
       b.classList.toggle('active', b.dataset.u === state.units);
     });
-    $('setGyms').innerHTML = state.gyms.map((g, i) =>
-      '<div class="po-set-row" data-i="' + i + '">'
-      + '<input type="text" value="' + escape(g.name) + '" data-field="name" placeholder="Gym name">'
-      + '<button class="po-mini-btn" data-action="del" aria-label="Delete">×</button>'
-      + '</div>'
-    ).join('');
     $('setDays').innerHTML = state.days.map((d, i) =>
       '<div class="po-set-row" data-i="' + i + '">'
       + '<input type="text" value="' + escape(d.name) + '" data-field="name" placeholder="Day name">'
       + '<button class="po-mini-btn" data-action="del" aria-label="Delete">×</button>'
       + '</div>'
     ).join('');
-    $('setGyms').querySelectorAll('.po-set-row').forEach(row => {
-      const i = parseInt(row.dataset.i, 10);
-      row.querySelector('input').addEventListener('input', e => {
-        state.gyms[i].name = e.target.value;
-        saveState();
-      });
-      row.querySelector('[data-action="del"]').addEventListener('click', () => {
-        if (state.gyms.length <= 1) { alert('You need at least one gym.'); return; }
-        if (!confirm('Remove "' + state.gyms[i].name + '"? Exercises tagged to this gym will become invisible until you reassign them.')) return;
-        state.gyms.splice(i, 1);
-        if (!state.gyms.find(g => g.id === state.filterGym)) state.filterGym = state.gyms[0].id;
-        saveState(); renderSettings(); renderAll();
-      });
-    });
     $('setDays').querySelectorAll('.po-set-row').forEach(row => {
       const i = parseInt(row.dataset.i, 10);
       row.querySelector('input').addEventListener('input', e => {
@@ -2541,7 +2411,6 @@ img, video, canvas, svg { max-width: 100%; }
         if (state.days.length <= 1) { alert('You need at least one day.'); return; }
         if (!confirm('Remove "' + state.days[i].name + '"?')) return;
         state.days.splice(i, 1);
-        if (!state.days.find(d => d.id === state.filterDay)) state.filterDay = state.days[0].id;
         saveState(); renderSettings(); renderAll();
       });
     });
@@ -2562,12 +2431,9 @@ img, video, canvas, svg { max-width: 100%; }
       if (typeof wtRender === 'function') wtRender();
     });
   });
-  $('setAddGym').addEventListener('click', () => {
-    const name = (prompt('New gym name:') || '').trim();
-    if (!name) return;
-    const id = 'g_' + Date.now();
-    state.gyms.push({ id, name });
-    saveState(); renderSettings(); renderAll();
+  $('setEditRotation').addEventListener('click', () => {
+    $('setModalBg').classList.remove('show');
+    openRotationModal();
   });
   $('setAddDay').addEventListener('click', () => {
     const name = (prompt('New day name:') || '').trim();
@@ -2600,7 +2466,7 @@ img, video, canvas, svg { max-width: 100%; }
     reader.readAsText(file);
   });
   $('setReset').addEventListener('click', () => {
-    if (!confirm('Delete EVERYTHING (logs, edits, gyms, days)? This cannot be undone.')) return;
+    if (!confirm('Delete EVERYTHING (logs, edits, days)? This cannot be undone.')) return;
     localStorage.removeItem(LS_KEY);
     state = loadState();
     $('setModalBg').classList.remove('show');
