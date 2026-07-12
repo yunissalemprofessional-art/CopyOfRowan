@@ -256,6 +256,26 @@ body::after {
   background: linear-gradient(90deg, rgba(255,255,255,0.08), transparent);
 }
 
+/* ===== Faith ===== */
+.faith-card {
+  border-left: 3px solid #D8AB30;
+}
+.faith-list { display: flex; flex-direction: column; gap: 12px; }
+.faith-row {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 14px; font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.faith-row input[type="checkbox"] {
+  width: 18px; height: 18px;
+  accent-color: #D8AB30;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.faith-row.checked { color: var(--text-primary); }
+
 .gm-card {
   position: relative;
   background: rgba(255, 255, 255, 0.04);
@@ -640,6 +660,19 @@ body::after {
   </div>
 
   <div class="section">
+    <div class="section-title">Faith</div>
+    <div class="gm-card faith-card">
+      <div class="faith-list" id="faithList">
+        <label class="faith-row"><input type="checkbox" data-prayer="fajr"> Fajr</label>
+        <label class="faith-row"><input type="checkbox" data-prayer="dhuhr"> Dhuhr</label>
+        <label class="faith-row"><input type="checkbox" data-prayer="asr"> Asr</label>
+        <label class="faith-row"><input type="checkbox" data-prayer="maghrib"> Maghrib</label>
+        <label class="faith-row"><input type="checkbox" data-prayer="isha"> Isha</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
     <div class="section-title">To Do List</div>
 
     <!-- TODAY -->
@@ -751,6 +784,27 @@ body::after {
 
   function todayKey()    { return 'goals:' + getActiveDateString(); }
   function tomorrowKey() { return 'goals:' + getTomorrowDateString(); }
+
+  // ---------- Faith ----------
+  function faithKey() { return 'faith:' + getActiveDateString(); }
+  function loadFaith() {
+    const checked = storeGet(faithKey()) || {};
+    document.querySelectorAll('#faithList input[type="checkbox"]').forEach((cb) => {
+      const on = !!checked[cb.dataset.prayer];
+      cb.checked = on;
+      cb.closest('.faith-row').classList.toggle('checked', on);
+    });
+  }
+  function wireFaith() {
+    document.querySelectorAll('#faithList input[type="checkbox"]').forEach((cb) => {
+      cb.addEventListener('change', () => {
+        const checked = storeGet(faithKey()) || {};
+        if (cb.checked) checked[cb.dataset.prayer] = true; else delete checked[cb.dataset.prayer];
+        storeSet(faithKey(), checked);
+        cb.closest('.faith-row').classList.toggle('checked', cb.checked);
+      });
+    });
+  }
 
   function getGoals(key) {
     const g = storeGet(key);
@@ -1300,10 +1354,12 @@ body::after {
   updateDayRing();
   setInterval(updateDayRing, 60 * 1000);
   startTicker();
+  wireFaith();
+  loadFaith();
 
   // Re-render when storage changes from another tab (or our bridged parent).
   window.addEventListener('storage', () => {
-    loadToday(); loadTomorrow(); renderStreak();
+    loadToday(); loadTomorrow(); renderStreak(); loadFaith();
   });
 })();
 </script>
@@ -1312,7 +1368,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (typeof initCloudSync !== 'function') return;
   initCloudSync({
     appKey: 'goals',
-    syncedPrefixes: ['goals:'],
+    syncedPrefixes: ['goals:', 'faith:'],
     onApplied: function () {
       window.dispatchEvent(new CustomEvent('goals-changed'));
       window.dispatchEvent(new Event('storage'));
