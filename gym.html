@@ -332,26 +332,11 @@ img, video, canvas, svg { max-width: 100%; }
 }
 .po-w-btn:hover { background: rgba(255,255,255,0.10); }
 .po-w-btn:active { transform: scale(0.94); }
-.po-reps-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(48px, 1fr));
-  gap: 6px;
-  width: 100%;
-}
-.po-reps-pill {
-  padding: 12px 0; border: 1px solid var(--border);
-  background: rgba(0,0,0,0.28); color: var(--text-2);
-  border-radius: 8px; cursor: pointer;
-  font-family: inherit; font-size: 13px; font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  -webkit-tap-highlight-color: transparent;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
-}
-.po-reps-pill:hover { background: rgba(255,255,255,0.06); color: var(--text-1); }
-.po-reps-pill.active {
-  background: linear-gradient(180deg, #ffffff 0%, #e8e5dd 100%);
-  color: #0a0a0b; border-color: transparent;
-  font-weight: 800;
+
+/* ----- Today's sets — one quiet line under the Log button ----- */
+.po-today-sets {
+  font-size: 12px; color: var(--text-3);
+  margin-top: 10px; min-height: 16px;
 }
 
 /* ----- Primary button ----- */
@@ -603,10 +588,8 @@ img, video, canvas, svg { max-width: 100%; }
   /* Cards — tighter padding so content has room */
   .card { padding: 16px 14px; margin-bottom: 12px; }
 
-  /* Stack weight + reps vertically so every rep button fits the screen */
+  /* Stack weight + reps vertically on narrow phones */
   .po-log-grid { grid-template-columns: 1fr; gap: 14px; }
-  .po-reps-row { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
-  .po-reps-pill { padding: 14px 0; font-size: 14px; min-width: 0; }
   .po-w-btn { min-width: 44px; padding: 0 10px; font-size: 18px; }
 
   /* Stats — 3 narrow boxes can squeeze on a 360px iPhone; let them shrink */
@@ -639,7 +622,6 @@ img, video, canvas, svg { max-width: 100%; }
 @media (max-width: 360px) {
   .po-shell { padding-left: 8px; padding-right: 8px; }
   .po-title { font-size: 17px; }
-  .po-reps-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 /* Today's Workout + Past Workouts */
@@ -1593,11 +1575,6 @@ img, video, canvas, svg { max-width: 100%; }
     return '<div class="po-ex-card" data-ex-id="' + ex.id + '">'
       + '<div class="po-ex-card-name">' + escape(ex.name) + '</div>'
       + '<div class="po-bw-banner" data-role="bwBanner">Bodyweight — log reps only</div>'
-      + '<div class="po-last-set" data-role="lastSet">'
-      +   '<span class="po-last-label">Last time</span>'
-      +   '<span class="po-last-value" data-role="lastSetValue"></span>'
-      +   '<span class="po-last-meta" data-role="lastSetMeta"></span>'
-      + '</div>'
       + '<div class="po-log-grid" data-role="logGrid">'
       +   '<div class="po-field" data-role="weightField">'
       +     '<label data-role="weightLabel">Weight (' + unit() + ')</label>'
@@ -1609,19 +1586,29 @@ img, video, canvas, svg { max-width: 100%; }
       +   '</div>'
       +   '<div class="po-field">'
       +     '<label>Reps</label>'
-      +     '<div class="po-reps-row" data-role="repsRow" data-value="8"></div>'
+      +     '<div class="po-weight-row">'
+      +       '<button class="po-w-btn" type="button" data-action="repsDown">−</button>'
+      +       '<input type="number" data-action="repsInput" step="1" inputmode="numeric" placeholder="0">'
+      +       '<button class="po-w-btn" type="button" data-action="repsUp">+</button>'
+      +     '</div>'
       +   '</div>'
       + '</div>'
       + '<button class="po-btn-primary" type="button" data-action="logBtn">Log set</button>'
-      + '<div class="po-sub-section" style="margin-top:18px">'
-      +   '<div class="po-sub-title">Next session</div>'
-      +   '<div data-role="rxWrap"></div>'
-      + '</div>'
+      + '<div class="po-today-sets" data-role="todaySets"></div>'
       + '<div class="po-sub-section">'
       +   '<button type="button" class="po-tw-past-toggle" data-action="detailsToggle" aria-expanded="false">'
       +     '<span>Details</span><span class="po-tw-past-arrow">▾</span>'
       +   '</button>'
       +   '<div data-role="detailsBody" style="display:none">'
+      +     '<div class="po-last-set" data-role="lastSet">'
+      +       '<span class="po-last-label">Last time</span>'
+      +       '<span class="po-last-value" data-role="lastSetValue"></span>'
+      +       '<span class="po-last-meta" data-role="lastSetMeta"></span>'
+      +     '</div>'
+      +     '<div class="po-sub-section" style="margin-top:16px">'
+      +       '<div class="po-sub-title">Next session</div>'
+      +       '<div data-role="rxWrap"></div>'
+      +     '</div>'
       +     '<div class="po-sub-section">'
       +       '<div class="po-sub-title">Stats</div>'
       +       '<div class="po-stats-row">'
@@ -1673,15 +1660,25 @@ img, video, canvas, svg { max-width: 100%; }
       grid.classList.remove('po-bw-mode'); oneRmLbl.textContent = 'Est. 1RM';
     }
     renderLastSetFor(logs, ex, cardEl);
-    renderRepsRowFor(ex, cardEl);
     renderRxFor(ex, logs, cardEl);
     renderStatsFor(ex, logs, cardEl);
     renderSparklineFor(ex, logs, cardEl);
     renderHistoryFor(ex, logs, cardEl);
+    renderTodaySetsFor(ex, logs, cardEl);
     if (!ex.bw) {
       const input = cardEl.querySelector('[data-action="weightInput"]');
       input.value = logs.length ? logs[logs.length - 1].weight : (ex.startWeight || 0);
     }
+    const repsInput = cardEl.querySelector('[data-action="repsInput"]');
+    repsInput.value = logs.length ? logs[logs.length - 1].reps : (ex.repMax || 8);
+  }
+  function renderTodaySetsFor(ex, logs, cardEl) {
+    const el = cardEl.querySelector('[data-role="todaySets"]');
+    const todayKey = wtDateKey(new Date());
+    const todays = logs.filter(l => l.date.slice(0, 10) === todayKey);
+    el.textContent = todays.length
+      ? 'Today: ' + todays.map(l => ex.bw ? (l.reps + ' reps') : (l.weight + unit() + ' × ' + l.reps)).join(', ')
+      : '';
   }
   function renderLastSetFor(logs, ex, cardEl) {
     const wrap = cardEl.querySelector('[data-role="lastSet"]');
@@ -1784,21 +1781,6 @@ img, video, canvas, svg { max-width: 100%; }
         + '<button class="po-hist-del" type="button" data-action="histDel" data-idx="' + realIdx + '" aria-label="Delete">×</button>'
         + '</div>';
     }).join('');
-  }
-  function renderRepsRowFor(ex, cardEl) {
-    const row = cardEl.querySelector('[data-role="repsRow"]');
-    const repMin = Math.max(1, parseInt(ex.repMin, 10) || 1);
-    const repMax = Math.max(repMin, parseInt(ex.repMax, 10) || repMin);
-    const upper = Math.max(repMax + 2, repMin + 5);
-    const end = Math.min(upper, repMin + 15);
-    const prev = parseInt(row.dataset.value, 10);
-    const active = (prev >= repMin && prev <= end) ? prev : repMax;
-    let html = '';
-    for (let i = repMin; i <= end; i++) {
-      html += '<button type="button" class="po-reps-pill' + (i === active ? ' active' : '') + '" data-v="' + i + '">' + i + '</button>';
-    }
-    row.innerHTML = html;
-    row.dataset.value = String(active);
   }
   // Compute today's split from state.splitRotation + state.splitAnchor.
   // Returns the rotation entry name (e.g. "Push" or "Rest") AND the index.
@@ -2003,17 +1985,21 @@ img, video, canvas, svg { max-width: 100%; }
       input.value = w + (ex.step || 2.5);
       return;
     }
-    const repsPill = e.target.closest('.po-reps-pill');
-    if (repsPill) {
-      const row = repsPill.closest('[data-role="repsRow"]');
-      row.querySelectorAll('.po-reps-pill').forEach(x => x.classList.remove('active'));
-      repsPill.classList.add('active');
-      row.dataset.value = repsPill.dataset.v;
+    if (e.target.closest('[data-action="repsDown"]')) {
+      const input = card.querySelector('[data-action="repsInput"]');
+      const r = parseInt(input.value, 10) || 0;
+      input.value = Math.max(1, r - 1);
+      return;
+    }
+    if (e.target.closest('[data-action="repsUp"]')) {
+      const input = card.querySelector('[data-action="repsInput"]');
+      const r = parseInt(input.value, 10) || 0;
+      input.value = r + 1;
       return;
     }
     if (e.target.closest('[data-action="logBtn"]')) {
-      const reps = parseInt(card.querySelector('[data-role="repsRow"]').dataset.value, 10) || 0;
-      if (reps <= 0) { alert('Pick a rep count.'); return; }
+      const reps = parseInt(card.querySelector('[data-action="repsInput"]').value, 10) || 0;
+      if (reps <= 0) { alert('Enter reps.'); return; }
       const weightInput = card.querySelector('[data-action="weightInput"]');
       const w = ex.bw ? 0 : (parseFloat(weightInput.value) || 0);
       if (!ex.bw && w <= 0) { alert('Enter a weight.'); return; }
