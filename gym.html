@@ -68,23 +68,24 @@ const CONFIG = {
   //   startWeight — starting weight (ignored when bw: true)
   //   bw          — true for bodyweight movements (logs reps only)
   //
-  // First-run defaults. Once a user logs anything, they edit through
-  // the in-app + / gear buttons; this block stays as the seed.
+  // The routine is fixed — there's no in-app way to add/edit/delete
+  // exercises anymore. This list IS the schedule; edit it here to change
+  // what you log. (Source: Hevy's beginner Push/Pull/Legs program.)
   defaultExercises: [
-    { name: "Barbell Bench Press",       day: "push", repMin: 5,  repMax: 8,  step: 2.5,  startWeight: 60 },
-    { name: "Dumbbell Shoulder Press",    day: "push", repMin: 6,  repMax: 10, step: 2.5,  startWeight: 20 },
-    { name: "Pec Deck Fly",               day: "push", repMin: 10, repMax: 15, step: 5,    startWeight: 30 },
-    { name: "Dumbbell Lateral Raise",     day: "push", repMin: 10, repMax: 15, step: 1.25, startWeight: 7.5 },
-    { name: "Triceps Rope Pushdown",      day: "push", repMin: 8,  repMax: 12, step: 2.5,  startWeight: 20 },
-    { name: "Cable Lat Pulldown",         day: "pull", repMin: 6,  repMax: 10, step: 2.5,  startWeight: 40 },
-    { name: "Seated Cable Row (V-grip)",  day: "pull", repMin: 6,  repMax: 10, step: 2.5,  startWeight: 40 },
-    { name: "Dumbbell Shrug",             day: "pull", repMin: 10, repMax: 15, step: 2.5,  startWeight: 15 },
-    { name: "Dumbbell Hammer Curl",       day: "pull", repMin: 8,  repMax: 12, step: 1.25, startWeight: 10 },
-    { name: "Face Pull",                  day: "pull", repMin: 12, repMax: 15, step: 2.5,  startWeight: 15 },
-    { name: "Leg Press (Machine)",        day: "legs", repMin: 8,  repMax: 12, step: 10,   startWeight: 80 },
-    { name: "Lying Leg Curl (Machine)",   day: "legs", repMin: 8,  repMax: 12, step: 2.5,  startWeight: 20 },
-    { name: "Leg Extension (Machine)",    day: "legs", repMin: 10, repMax: 15, step: 2.5,  startWeight: 25 },
-    { name: "Standing Calf Raise (Machine)", day: "legs", repMin: 10, repMax: 15, step: 5,  startWeight: 40 }
+    { name: "Barbell Bench Press",      day: "push", repMin: 5,  repMax: 8,  step: 2.5,  startWeight: 60 },
+    { name: "Dumbbell Shoulder Press",   day: "push", repMin: 5,  repMax: 8,  step: 2.5,  startWeight: 20 },
+    { name: "Pec Deck Fly",              day: "push", repMin: 10, repMax: 15, step: 2.5,  startWeight: 20 },
+    { name: "Dumbbell Lateral Raise",    day: "push", repMin: 12, repMax: 15, step: 1.25, startWeight: 8 },
+    { name: "Triceps Rope Pushdown",     day: "push", repMin: 10, repMax: 15, step: 2.5,  startWeight: 20 },
+    { name: "Cable Lat Pulldown",        day: "pull", repMin: 8,  repMax: 12, step: 2.5,  startWeight: 40 },
+    { name: "Seated Cable Row V-Grip",   day: "pull", repMin: 10, repMax: 12, step: 2.5,  startWeight: 40 },
+    { name: "Dumbbell Shrug",            day: "pull", repMin: 10, repMax: 12, step: 1.25, startWeight: 15 },
+    { name: "Dumbbell Hammer Curl",      day: "pull", repMin: 10, repMax: 12, step: 1.25, startWeight: 10 },
+    { name: "Face Pull",                 day: "pull", repMin: 12, repMax: 15, step: 2.5,  startWeight: 15 },
+    { name: "Leg Press Machine",         day: "legs", repMin: 8,  repMax: 12, step: 5,    startWeight: 80 },
+    { name: "Lying Leg Curl Machine",    day: "legs", repMin: 10, repMax: 12, step: 2.5,  startWeight: 25 },
+    { name: "Leg Extension Machine",     day: "legs", repMin: 10, repMax: 12, step: 2.5,  startWeight: 25 },
+    { name: "Standing Calf Raise Machine", day: "legs", repMin: 12, repMax: 15, step: 5,  startWeight: 30 }
   ]
 };
 </script>
@@ -227,6 +228,20 @@ img, video, canvas, svg { max-width: 100%; }
   margin-bottom: 18px;
 }
 
+/* ----- One card per exercise scheduled for today ----- */
+.po-ex-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 14px;
+}
+.po-ex-card-name {
+  font-size: 17px; font-weight: 700; letter-spacing: -0.01em;
+  color: var(--text-1);
+  margin-bottom: 14px;
+}
+
 /* ----- Sub-section title ----- */
 .po-sub-section { margin-top: 22px; }
 .po-sub-section:first-child { margin-top: 0; }
@@ -238,45 +253,6 @@ img, video, canvas, svg { max-width: 100%; }
 }
 .po-sub-title::before {
   content: ''; width: 24px; height: 1px; background: var(--border-strong);
-}
-
-/* ----- Exercise picker ----- */
-.po-exercise-bar { display: flex; gap: 8px; align-items: center; }
-.po-ex-select {
-  flex: 1 1 0; min-width: 0;
-  padding: 12px 14px;
-  border: 1px solid var(--border);
-  background: rgba(0,0,0,0.28);
-  color: var(--text-1); border-radius: 12px;
-  font-family: inherit; font-size: 14px; font-weight: 500;
-  appearance: none; -webkit-appearance: none;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' stroke='%2387847B' stroke-width='1.5' fill='none' stroke-linecap='round'/></svg>");
-  background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px;
-  text-overflow: ellipsis; overflow: hidden;
-}
-.po-ex-select:focus {
-  outline: none; border-color: rgba(255,255,255,0.40);
-  box-shadow: 0 0 0 3px rgba(255,255,255,0.06);
-}
-.po-ex-select:disabled { opacity: 0.5; }
-.po-btn-icon {
-  width: 44px; height: 44px;
-  display: flex; align-items: center; justify-content: center;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,0.04);
-  color: var(--text-2); border-radius: 12px;
-  font-size: 16px; cursor: pointer;
-  transition: background 0.18s, border-color 0.18s, color 0.18s;
-  flex-shrink: 0;
-  -webkit-tap-highlight-color: transparent;
-}
-.po-btn-icon:hover { background: rgba(255,255,255,0.10); color: var(--text-1); }
-.po-btn-icon:disabled { opacity: 0.4; cursor: not-allowed; }
-.po-no-ex {
-  background: rgba(255,255,255,0.025);
-  border: 1px dashed var(--border);
-  border-radius: 12px; padding: 16px; text-align: center;
-  font-size: 13px; color: var(--text-3); margin-top: 10px;
 }
 
 /* ----- Bodyweight banner ----- */
@@ -525,20 +501,10 @@ img, video, canvas, svg { max-width: 100%; }
   background: linear-gradient(180deg, #ffffff 0%, #e8e5dd 100%);
   color: #0a0a0b;
 }
-.po-bw-toggle {
-  display: flex; align-items: center; gap: 8px;
-  padding: 10px 0; font-size: 13px; color: var(--text-2);
-  cursor: pointer;
-}
 .po-modal-actions {
   display: flex; gap: 8px; margin-top: 18px;
 }
 .po-modal-actions button { flex: 1; }
-.po-delete-link {
-  display: block; text-align: center; margin-top: 12px;
-  font-size: 12px; color: var(--bad); cursor: pointer;
-  text-decoration: underline; padding: 6px;
-}
 
 /* ----- Settings panel rows ----- */
 .po-set-section { margin-bottom: 22px; }
@@ -636,11 +602,6 @@ img, video, canvas, svg { max-width: 100%; }
 
   /* Cards — tighter padding so content has room */
   .card { padding: 16px 14px; margin-bottom: 12px; }
-
-  /* Exercise picker */
-  .po-exercise-bar { gap: 6px; }
-  .po-ex-select { padding: 11px 10px; padding-right: 30px; font-size: 13px; }
-  .po-btn-icon { width: 38px; height: 38px; min-width: 38px; }
 
   /* Stack weight + reps vertically so every rep button fits the screen */
   .po-log-grid { grid-template-columns: 1fr; gap: 14px; }
@@ -1376,118 +1337,23 @@ img, video, canvas, svg { max-width: 100%; }
     </button>
   </div>
 
+  <!-- Shared sparkline fill gradient — one definition, referenced by every
+       exercise card's trend chart via CSS (.po-spark-fill { fill: url(#sparkGrad) }). -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="sparkGrad" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="rgba(255,255,255,0.18)"/>
+        <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
   <div class="card">
     <div class="po-today-heading" id="todayHeading">Today: —</div>
 
-    <!-- Exercise -->
-    <div class="po-sub-section">
-      <div class="po-sub-title">Exercise</div>
-      <div class="po-exercise-bar">
-        <select class="po-ex-select" id="exSelect"></select>
-        <button class="po-btn-icon" id="addExBtn" title="Add exercise" aria-label="Add">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </button>
-        <button class="po-btn-icon" id="editExBtn" title="Edit / delete" aria-label="Edit">
-          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
-        </button>
-      </div>
-      <div class="po-no-ex" id="noExMsg" style="display:none">No exercises here yet. Tap <strong>+</strong> to add one.</div>
-    </div>
-
-    <!-- Log a set -->
-    <div class="po-sub-section">
-      <div class="po-sub-title">Log today's top set</div>
-      <div class="po-bw-banner" id="bwBanner">Bodyweight — log reps only</div>
-      <div class="po-last-set" id="lastSet">
-        <span class="po-last-label">Last time</span>
-        <span class="po-last-value" id="lastSetValue"></span>
-        <span class="po-last-meta" id="lastSetMeta"></span>
-      </div>
-      <div class="po-log-grid" id="logGrid">
-        <div class="po-field" id="weightField">
-          <label id="weightLabel">Weight (kg)</label>
-          <div class="po-weight-row">
-            <button class="po-w-btn" id="weightDownBtn" type="button">−</button>
-            <input type="number" id="weightInput" step="0.5" inputmode="decimal" placeholder="0">
-            <button class="po-w-btn" id="weightUpBtn" type="button">+</button>
-          </div>
-        </div>
-        <div class="po-field">
-          <label>Reps</label>
-          <div class="po-reps-row" id="repsRow" data-value="8">
-            <button type="button" class="po-reps-pill" data-v="4">4</button>
-            <button type="button" class="po-reps-pill" data-v="5">5</button>
-            <button type="button" class="po-reps-pill" data-v="6">6</button>
-            <button type="button" class="po-reps-pill" data-v="7">7</button>
-            <button type="button" class="po-reps-pill active" data-v="8">8</button>
-            <button type="button" class="po-reps-pill" data-v="9">9</button>
-            <button type="button" class="po-reps-pill" data-v="10">10</button>
-            <button type="button" class="po-reps-pill" data-v="11">11</button>
-            <button type="button" class="po-reps-pill" data-v="12">12</button>
-          </div>
-        </div>
-      </div>
-      <button class="po-btn-primary" id="logBtn">Log set</button>
-    </div>
-
-    <!-- Prescription -->
-    <div class="po-sub-section">
-      <div class="po-sub-title">Next session</div>
-      <div id="rxWrap"></div>
-    </div>
-
-    <!-- Details — Stats / Trend / History, collapsed by default so the
-         main flow is just: exercise, last time, weight, reps, log. -->
-    <div class="po-sub-section">
-      <button type="button" class="po-tw-past-toggle" id="detailsToggle" aria-expanded="false">
-        <span>Details</span>
-        <span class="po-tw-past-arrow" id="detailsArrow">▾</span>
-      </button>
-      <div id="detailsBody" style="display:none">
-        <!-- Stats -->
-        <div class="po-sub-section">
-          <div class="po-sub-title">Stats</div>
-          <div class="po-stats-row">
-            <div class="po-stat-box">
-              <div class="po-stat-label" id="oneRmLabel">Est. 1RM</div>
-              <div class="po-stat-val" id="oneRm">—<span class="po-unit" id="oneRmUnit">kg</span></div>
-            </div>
-            <div class="po-stat-box">
-              <div class="po-stat-label">Best set</div>
-              <div class="po-stat-val" id="bestSet">—</div>
-            </div>
-            <div class="po-stat-box">
-              <div class="po-stat-label">Sessions</div>
-              <div class="po-stat-val" id="sessionCount">—</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Trend -->
-        <div class="po-sub-section">
-          <div class="po-sub-title">Trend (last 10 sessions)</div>
-          <div class="po-spark-wrap">
-            <svg class="po-spark-svg" id="sparkline" viewBox="0 0 300 60" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="sparkGrad" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" stop-color="rgba(255,255,255,0.18)"/>
-                  <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-                </linearGradient>
-              </defs>
-            </svg>
-            <div class="po-spark-empty" id="sparkEmpty">Need 2+ sessions for trend</div>
-          </div>
-        </div>
-
-        <!-- History -->
-        <div class="po-sub-section">
-          <div class="po-sub-title">History</div>
-          <div id="historyCard">
-            <div class="po-empty">No logs yet.</div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- One stacked card per exercise scheduled for today — the routine
+         is fixed, so there's no picker, just scroll and log each one. -->
+    <div id="exerciseCards"></div>
 
     <!-- Today's Workout — every set logged today, grouped by exercise.
          "Mark done" stamps the day so the past-workouts list shows it
@@ -1518,48 +1384,6 @@ img, video, canvas, svg { max-width: 100%; }
       </button>
       <div class="po-tw-past-body" id="poTwPastBody" style="display:none"></div>
     </div>
-  </div>
-</div>
-
-<!-- Add / Edit Exercise Modal -->
-<div class="po-modal-bg" id="exModalBg">
-  <div class="po-modal">
-    <h3 id="exModalTitle">Add exercise</h3>
-    <div class="po-field">
-      <label style="font-size:11px;color:var(--text-3);font-weight:700;letter-spacing:0.04em;text-transform:uppercase">Name</label>
-      <input type="text" id="exName" placeholder="e.g. Incline DB press">
-    </div>
-    <div class="po-field">
-      <label style="font-size:11px;color:var(--text-3);font-weight:700;letter-spacing:0.04em;text-transform:uppercase">Day</label>
-      <div class="po-modal-seg" id="exDaySeg"></div>
-    </div>
-    <label class="po-bw-toggle">
-      <input type="checkbox" id="exBw">
-      Bodyweight (track reps only, no weight)
-    </label>
-    <div class="po-field" id="exStartWeightField">
-      <label style="font-size:11px;color:var(--text-3);font-weight:700;letter-spacing:0.04em;text-transform:uppercase">Starting weight</label>
-      <input type="number" id="exStartWeight" step="0.5" placeholder="20" value="20">
-    </div>
-    <div class="po-log-grid" id="exNumFields">
-      <div class="po-field">
-        <label style="font-size:11px;color:var(--text-3);font-weight:700;letter-spacing:0.04em;text-transform:uppercase">Reps min</label>
-        <input type="number" id="exRepMin" value="6">
-      </div>
-      <div class="po-field">
-        <label style="font-size:11px;color:var(--text-3);font-weight:700;letter-spacing:0.04em;text-transform:uppercase">Reps max</label>
-        <input type="number" id="exRepMax" value="8">
-      </div>
-    </div>
-    <div class="po-field" id="exStepField">
-      <label style="font-size:11px;color:var(--text-3);font-weight:700;letter-spacing:0.04em;text-transform:uppercase">Increment</label>
-      <input type="number" id="exStep" step="0.5" value="2.5">
-    </div>
-    <div class="po-modal-actions">
-      <button class="po-btn-secondary" id="exModalCancel">Cancel</button>
-      <button class="po-btn-primary" id="exModalSave">Save</button>
-    </div>
-    <span class="po-delete-link" id="exDelete" style="display:none">Delete this exercise</span>
   </div>
 </div>
 
@@ -1630,11 +1454,6 @@ img, video, canvas, svg { max-width: 100%; }
   // ============================================================
   const LS_KEY = 'po_coach_v1';
 
-  function buildDefaultExercises() {
-    return CONFIG.defaultExercises.map((e, i) => Object.assign({
-      id: 'seed_' + i + '_' + Date.now()
-    }, e));
-  }
   function loadState() {
     try {
       const raw = localStorage.getItem(LS_KEY);
@@ -1646,10 +1465,19 @@ img, video, canvas, svg { max-width: 100%; }
     s = s || {};
     s.units = s.units || CONFIG.units || 'kg';
     s.days  = (Array.isArray(s.days)  && s.days.length)  ? s.days  : CONFIG.days.slice();
-    s.exercises = Array.isArray(s.exercises) ? s.exercises : buildDefaultExercises();
     s.logs = (s.logs && typeof s.logs === 'object') ? s.logs : {};
     // Gym concept removed — drop any leftover fields from older saves.
     delete s.gyms; delete s.filterGym; delete s.filterDay; delete s._userPickedDay;
+    // Exercises are no longer user-editable — the routine is fixed and
+    // always derived fresh from CONFIG.defaultExercises (see
+    // getAllExercises()), so the old mutable/random-id exercise list is
+    // dropped entirely. One-time: also clear logs, which were keyed to
+    // those old random ids and would otherwise sit orphaned forever.
+    delete s.exercises;
+    if (!s._fixedScheduleMigrated) {
+      s.logs = {};
+      s._fixedScheduleMigrated = true;
+    }
     // Split rotation lives in state so the user can edit it via Settings.
     // Stored as a plain array of names (e.g. ["Push", "Pull", "Legs"]).
     if (!Array.isArray(s.splitRotation) || !s.splitRotation.length) {
@@ -1698,10 +1526,18 @@ img, video, canvas, svg { max-width: 100%; }
   // ============================================================
   const $ = (id) => document.getElementById(id);
   function unit() { return state.units; }
-  function uid() { return 'ex_' + Date.now() + '_' + Math.floor(Math.random() * 9999); }
   function dayName(id) { const d = state.days.find(x => x.id === id); return d ? d.name : id; }
   function estimate1RM(w, r) { if (r < 2) return w; return w * (1 + r / 30); }
   function roundToStep(v, s) { return Math.round(v / s) * s; }
+  function slugify(name) {
+    return String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  }
+  // The fixed routine — always derived from CONFIG, never stored/edited.
+  // Ids are deterministic slugs of the name so logs stay attached to the
+  // same exercise across reloads.
+  function getAllExercises() {
+    return CONFIG.defaultExercises.map(e => Object.assign({ id: 'ex_' + slugify(e.name) }, e));
+  }
   // Today's training day is always computed from the split rotation — no
   // manual picking. Falls back to the first configured day if today's
   // split name (e.g. a custom "Rest") doesn't match any exercise day.
@@ -1712,16 +1548,9 @@ img, video, canvas, svg { max-width: 100%; }
   }
   function getFiltered() {
     const dayId = currentDayId();
-    return state.exercises.filter(e => e.day === dayId);
+    return getAllExercises().filter(e => e.day === dayId);
   }
-  function getCurrentEx() {
-    const f = getFiltered();
-    if (!f.length) return null;
-    let ex = f.find(e => e.id === state.currentEx);
-    if (!ex) { ex = f[0]; state.currentEx = ex.id; saveState(); }
-    return ex;
-  }
-  function getLogs() { return (state.logs[state.currentEx] || []).slice(); }
+  function getLogsFor(exId) { return (state.logs[exId] || []).slice(); }
 
   // Prescription engine — "what should I do next session?"
   // Upgrade trigger: hits CONFIG.upgradeAtReps (default 8) OR the
@@ -1759,52 +1588,106 @@ img, video, canvas, svg { max-width: 100%; }
     const split = todaySplit();
     $('todayHeading').textContent = 'Today: ' + (split.name || '—');
   }
-  function renderSelect() {
-    const sel = $('exSelect');
-    const f = getFiltered();
-    const noMsg = $('noExMsg');
-    const editBtn = $('editExBtn');
-    const logBtn = $('logBtn');
-    if (!f.length) {
-      sel.innerHTML = '<option>—</option>';
-      sel.disabled = true; editBtn.disabled = true; logBtn.disabled = true;
-      noMsg.style.display = 'block'; state.currentEx = null;
+  // ---- One card per exercise scheduled for today (no picker) ----
+  function buildExerciseCardHTML(ex) {
+    return '<div class="po-ex-card" data-ex-id="' + ex.id + '">'
+      + '<div class="po-ex-card-name">' + escape(ex.name) + '</div>'
+      + '<div class="po-bw-banner" data-role="bwBanner">Bodyweight — log reps only</div>'
+      + '<div class="po-last-set" data-role="lastSet">'
+      +   '<span class="po-last-label">Last time</span>'
+      +   '<span class="po-last-value" data-role="lastSetValue"></span>'
+      +   '<span class="po-last-meta" data-role="lastSetMeta"></span>'
+      + '</div>'
+      + '<div class="po-log-grid" data-role="logGrid">'
+      +   '<div class="po-field" data-role="weightField">'
+      +     '<label data-role="weightLabel">Weight (' + unit() + ')</label>'
+      +     '<div class="po-weight-row">'
+      +       '<button class="po-w-btn" type="button" data-action="weightDown">−</button>'
+      +       '<input type="number" data-action="weightInput" step="0.5" inputmode="decimal" placeholder="0">'
+      +       '<button class="po-w-btn" type="button" data-action="weightUp">+</button>'
+      +     '</div>'
+      +   '</div>'
+      +   '<div class="po-field">'
+      +     '<label>Reps</label>'
+      +     '<div class="po-reps-row" data-role="repsRow" data-value="8"></div>'
+      +   '</div>'
+      + '</div>'
+      + '<button class="po-btn-primary" type="button" data-action="logBtn">Log set</button>'
+      + '<div class="po-sub-section" style="margin-top:18px">'
+      +   '<div class="po-sub-title">Next session</div>'
+      +   '<div data-role="rxWrap"></div>'
+      + '</div>'
+      + '<div class="po-sub-section">'
+      +   '<button type="button" class="po-tw-past-toggle" data-action="detailsToggle" aria-expanded="false">'
+      +     '<span>Details</span><span class="po-tw-past-arrow">▾</span>'
+      +   '</button>'
+      +   '<div data-role="detailsBody" style="display:none">'
+      +     '<div class="po-sub-section">'
+      +       '<div class="po-sub-title">Stats</div>'
+      +       '<div class="po-stats-row">'
+      +         '<div class="po-stat-box"><div class="po-stat-label" data-role="oneRmLabel">Est. 1RM</div><div class="po-stat-val" data-role="oneRm">—<span class="po-unit">' + unit() + '</span></div></div>'
+      +         '<div class="po-stat-box"><div class="po-stat-label">Best set</div><div class="po-stat-val" data-role="bestSet">—</div></div>'
+      +         '<div class="po-stat-box"><div class="po-stat-label">Sessions</div><div class="po-stat-val" data-role="sessionCount">—</div></div>'
+      +       '</div>'
+      +     '</div>'
+      +     '<div class="po-sub-section">'
+      +       '<div class="po-sub-title">Trend (last 10 sessions)</div>'
+      +       '<div class="po-spark-wrap">'
+      +         '<svg class="po-spark-svg" data-role="sparkline" viewBox="0 0 300 60" preserveAspectRatio="none"></svg>'
+      +         '<div class="po-spark-empty" data-role="sparkEmpty">Need 2+ sessions for trend</div>'
+      +       '</div>'
+      +     '</div>'
+      +     '<div class="po-sub-section">'
+      +       '<div class="po-sub-title">History</div>'
+      +       '<div data-role="historyCard"><div class="po-empty">No logs yet.</div></div>'
+      +     '</div>'
+      +   '</div>'
+      + '</div>'
+      + '</div>';
+  }
+  function renderExerciseCards() {
+    const container = $('exerciseCards');
+    const list = getFiltered();
+    if (!list.length) {
+      container.innerHTML = '<div class="po-no-ex">No exercises scheduled for today.</div>';
       return;
     }
-    sel.disabled = false; editBtn.disabled = false; logBtn.disabled = false;
-    noMsg.style.display = 'none';
-    if (!f.find(e => e.id === state.currentEx)) state.currentEx = f[0].id;
-    sel.innerHTML = f.map(e => {
-      const wLbl = e.bw ? ' · BW' : (e.startWeight ? ' · ' + e.startWeight + unit() : '');
-      return '<option value="' + e.id + '"' + (e.id === state.currentEx ? ' selected' : '') + '>' + escape(e.name) + wLbl + '</option>';
-    }).join('');
+    container.innerHTML = list.map(buildExerciseCardHTML).join('');
+    list.forEach(ex => {
+      const cardEl = container.querySelector('[data-ex-id="' + ex.id + '"]');
+      populateCard(ex, cardEl);
+    });
   }
-  function renderForm() {
-    const ex = getCurrentEx();
-    const banner = $('bwBanner');
-    const wField = $('weightField');
-    const oneRmLbl = $('oneRmLabel');
-    const grid = $('logGrid');
-    $('weightLabel').textContent = 'Weight (' + unit() + ')';
-    if (ex && ex.bw) {
-      banner.classList.add('show');
-      wField.style.display = 'none';
-      grid.classList.add('po-bw-mode');
-      oneRmLbl.textContent = 'Best reps';
+  function populateCard(ex, cardEl) {
+    const logs = getLogsFor(ex.id);
+    const banner = cardEl.querySelector('[data-role="bwBanner"]');
+    const wField = cardEl.querySelector('[data-role="weightField"]');
+    const grid = cardEl.querySelector('[data-role="logGrid"]');
+    const oneRmLbl = cardEl.querySelector('[data-role="oneRmLabel"]');
+    cardEl.querySelector('[data-role="weightLabel"]').textContent = 'Weight (' + unit() + ')';
+    if (ex.bw) {
+      banner.classList.add('show'); wField.style.display = 'none';
+      grid.classList.add('po-bw-mode'); oneRmLbl.textContent = 'Best reps';
     } else {
-      banner.classList.remove('show');
-      wField.style.display = '';
-      grid.classList.remove('po-bw-mode');
-      oneRmLbl.textContent = 'Est. 1RM';
+      banner.classList.remove('show'); wField.style.display = '';
+      grid.classList.remove('po-bw-mode'); oneRmLbl.textContent = 'Est. 1RM';
+    }
+    renderLastSetFor(logs, ex, cardEl);
+    renderRepsRowFor(ex, cardEl);
+    renderRxFor(ex, logs, cardEl);
+    renderStatsFor(ex, logs, cardEl);
+    renderSparklineFor(ex, logs, cardEl);
+    renderHistoryFor(ex, logs, cardEl);
+    if (!ex.bw) {
+      const input = cardEl.querySelector('[data-action="weightInput"]');
+      input.value = logs.length ? logs[logs.length - 1].weight : (ex.startWeight || 0);
     }
   }
-  function renderLastSet() {
-    const wrap = $('lastSet');
-    const v = $('lastSetValue');
-    const m = $('lastSetMeta');
-    const ex = getCurrentEx();
-    const logs = ex ? getLogs() : [];
-    if (!ex || !logs.length) { wrap.classList.remove('show'); return; }
+  function renderLastSetFor(logs, ex, cardEl) {
+    const wrap = cardEl.querySelector('[data-role="lastSet"]');
+    const v = cardEl.querySelector('[data-role="lastSetValue"]');
+    const m = cardEl.querySelector('[data-role="lastSetMeta"]');
+    if (!logs.length) { wrap.classList.remove('show'); return; }
     const last = logs[logs.length - 1];
     const setStr = ex.bw ? (last.reps + ' reps') : (last.weight + unit() + ' × ' + last.reps);
     const d = new Date(last.date);
@@ -1814,11 +1697,8 @@ img, video, canvas, svg { max-width: 100%; }
     m.textContent = ago;
     wrap.classList.add('show');
   }
-  function renderRx() {
-    const wrap = $('rxWrap');
-    const ex = getCurrentEx();
-    if (!ex) { wrap.innerHTML = '<div class="po-rx-empty">No exercises for today — tap + to add one.</div>'; return; }
-    const logs = getLogs();
+  function renderRxFor(ex, logs, cardEl) {
+    const wrap = cardEl.querySelector('[data-role="rxWrap"]');
     const rx = getRx(ex, logs);
     if (!rx) {
       const sw = ex.startWeight, sr = ex.repMin;
@@ -1836,21 +1716,22 @@ img, video, canvas, svg { max-width: 100%; }
       : '<span class="po-accent">' + rx.weight + unit() + '</span> × ' + rx.reps + ' reps';
     wrap.innerHTML = '<div class="po-rx-card po-rx-' + rx.type + '"><div class="po-rx-label">' + escape(ex.name) + '</div><div class="po-rx-headline">' + head + '</div><span class="po-rx-tag ' + rx.type + '">' + rx.tag + '</span><p class="po-rx-reason">' + rx.reason + '</p></div>';
   }
-  function renderStats() {
-    const ex = getCurrentEx();
-    const logs = ex ? getLogs() : [];
+  function renderStatsFor(ex, logs, cardEl) {
+    const oneRmEl = cardEl.querySelector('[data-role="oneRm"]');
+    const bestSetEl = cardEl.querySelector('[data-role="bestSet"]');
+    const sessionCountEl = cardEl.querySelector('[data-role="sessionCount"]');
     if (!logs.length) {
-      $('oneRm').innerHTML = '—<span class="po-unit">' + unit() + '</span>';
-      $('bestSet').textContent = '—';
-      $('sessionCount').textContent = '—';
+      oneRmEl.innerHTML = '—<span class="po-unit">' + unit() + '</span>';
+      bestSetEl.textContent = '—';
+      sessionCountEl.textContent = '—';
       return;
     }
     if (ex.bw) {
       const br = Math.max.apply(null, logs.map(l => l.reps));
-      $('oneRm').innerHTML = br + '<span class="po-unit">reps</span>';
+      oneRmEl.innerHTML = br + '<span class="po-unit">reps</span>';
     } else {
       const orm = Math.max.apply(null, logs.map(l => estimate1RM(l.weight, l.reps)));
-      $('oneRm').innerHTML = Math.round(orm) + '<span class="po-unit">' + unit() + '</span>';
+      oneRmEl.innerHTML = Math.round(orm) + '<span class="po-unit">' + unit() + '</span>';
     }
     let best = logs[0];
     logs.forEach(l => {
@@ -1858,20 +1739,19 @@ img, video, canvas, svg { max-width: 100%; }
       const bestVal = ex.bw ? best.reps : estimate1RM(best.weight, best.reps);
       if (cur > bestVal) best = l;
     });
-    $('bestSet').textContent = ex.bw ? (best.reps + 'r') : (best.weight + '×' + best.reps);
-    $('sessionCount').textContent = logs.length;
+    bestSetEl.textContent = ex.bw ? (best.reps + 'r') : (best.weight + '×' + best.reps);
+    sessionCountEl.textContent = logs.length;
   }
-  function renderSparkline() {
-    const svg = $('sparkline');
-    const empty = $('sparkEmpty');
-    const ex = getCurrentEx();
-    const logs = ex ? getLogs().slice(-10) : [];
-    if (logs.length < 2) {
+  function renderSparklineFor(ex, logs, cardEl) {
+    const svg = cardEl.querySelector('[data-role="sparkline"]');
+    const empty = cardEl.querySelector('[data-role="sparkEmpty"]');
+    const recent = logs.slice(-10);
+    if (recent.length < 2) {
       svg.style.display = 'none'; empty.style.display = 'block';
       return;
     }
     svg.style.display = 'block'; empty.style.display = 'none';
-    const vals = logs.map(l => ex.bw ? l.reps : estimate1RM(l.weight, l.reps));
+    const vals = recent.map(l => ex.bw ? l.reps : estimate1RM(l.weight, l.reps));
     const min = Math.min.apply(null, vals);
     const max = Math.max.apply(null, vals);
     const range = max - min || 1;
@@ -1883,44 +1763,42 @@ img, video, canvas, svg { max-width: 100%; }
     });
     const linePath = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
     const fillPath = linePath + ' L' + pts[pts.length - 1][0].toFixed(1) + ' ' + H + ' L' + pts[0][0].toFixed(1) + ' ' + H + ' Z';
-    // Keep <defs> in place; replace any prior paths
-    const defsHTML = '<defs><linearGradient id="sparkGrad" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="rgba(255,255,255,0.18)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></linearGradient></defs>';
-    svg.innerHTML = defsHTML
-      + '<path class="po-spark-fill" d="' + fillPath + '"/>'
+    svg.innerHTML = '<path class="po-spark-fill" d="' + fillPath + '"/>'
       + '<path class="po-spark-line" d="' + linePath + '"/>';
   }
-  function renderHistory() {
-    const wrap = $('historyCard');
-    const ex = getCurrentEx();
-    const logs = ex ? getLogs().slice().reverse() : [];
-    if (!logs.length) {
+  function renderHistoryFor(ex, logs, cardEl) {
+    const wrap = cardEl.querySelector('[data-role="historyCard"]');
+    const reversed = logs.slice().reverse();
+    if (!reversed.length) {
       wrap.innerHTML = '<div class="po-empty">No logs yet.</div>';
       return;
     }
-    wrap.innerHTML = logs.slice(0, 12).map((l, i) => {
+    wrap.innerHTML = reversed.slice(0, 12).map((l, i) => {
       const d = new Date(l.date);
       const dStr = (d.getMonth() + 1) + '/' + d.getDate();
       const setStr = ex.bw ? (l.reps + ' reps') : (l.weight + unit() + ' × ' + l.reps);
-      const realIdx = logs.length - 1 - i; // since we reversed
+      const realIdx = reversed.length - 1 - i; // since we reversed
       return '<div class="po-hist-row">'
         + '<div class="po-hist-date">' + dStr + '</div>'
         + '<div class="po-hist-set">' + setStr + '</div>'
-        + '<button class="po-hist-del" data-idx="' + realIdx + '" aria-label="Delete">×</button>'
+        + '<button class="po-hist-del" type="button" data-action="histDel" data-idx="' + realIdx + '" aria-label="Delete">×</button>'
         + '</div>';
     }).join('');
-    wrap.querySelectorAll('.po-hist-del').forEach(b => {
-      b.addEventListener('click', () => {
-        if (!confirm('Delete this log?')) return;
-        const realIdx = parseInt(b.dataset.idx, 10);
-        const arr = state.logs[state.currentEx] || [];
-        // realIdx is index in REVERSED list; map back to original
-        const origIdx = arr.length - 1 - realIdx;
-        arr.splice(origIdx, 1);
-        if (!arr.length) delete state.logs[state.currentEx];
-        else state.logs[state.currentEx] = arr;
-        saveState(); renderAll();
-      });
-    });
+  }
+  function renderRepsRowFor(ex, cardEl) {
+    const row = cardEl.querySelector('[data-role="repsRow"]');
+    const repMin = Math.max(1, parseInt(ex.repMin, 10) || 1);
+    const repMax = Math.max(repMin, parseInt(ex.repMax, 10) || repMin);
+    const upper = Math.max(repMax + 2, repMin + 5);
+    const end = Math.min(upper, repMin + 15);
+    const prev = parseInt(row.dataset.value, 10);
+    const active = (prev >= repMin && prev <= end) ? prev : repMax;
+    let html = '';
+    for (let i = repMin; i <= end; i++) {
+      html += '<button type="button" class="po-reps-pill' + (i === active ? ' active' : '') + '" data-v="' + i + '">' + i + '</button>';
+    }
+    row.innerHTML = html;
+    row.dataset.value = String(active);
   }
   // Compute today's split from state.splitRotation + state.splitAnchor.
   // Returns the rotation entry name (e.g. "Push" or "Rest") AND the index.
@@ -1938,53 +1816,11 @@ img, video, canvas, svg { max-width: 100%; }
       return { name: (state.splitRotation && state.splitRotation[0]) || '—', index: 0 };
     }
   }
-  // Build the rep buttons based on the current exercise's repMin/repMax.
-  // Always spans repMin → repMax + 2 (a small buffer for over-performing
-  // sets that trigger the upgrade signal), capped at 16 buttons total so
-  // wide ranges don't break the mobile layout.
-  function renderRepsRow() {
-    const row = document.getElementById('repsRow');
-    if (!row) return;
-    const ex = getCurrentEx();
-    let repMin, repMax;
-    if (ex) {
-      repMin = Math.max(1, parseInt(ex.repMin, 10) || 1);
-      repMax = Math.max(repMin, parseInt(ex.repMax, 10) || repMin);
-    } else {
-      repMin = 4; repMax = 12;
-    }
-    const upper = Math.max(repMax + 2, repMin + 5);
-    const end = Math.min(upper, repMin + 15);
-
-    // Preserve the previously-selected rep if it still fits in the new
-    // range; otherwise default to the target (repMax).
-    const prev = parseInt(row.dataset.value, 10);
-    const active = (prev >= repMin && prev <= end) ? prev : repMax;
-
-    let html = '';
-    for (let i = repMin; i <= end; i++) {
-      html += '<button type="button" class="po-reps-pill' +
-        (i === active ? ' active' : '') +
-        '" data-v="' + i + '">' + i + '</button>';
-    }
-    row.innerHTML = html;
-    row.dataset.value = String(active);
-  }
-
   function renderAll() {
     renderTodayHeading();
-    renderSelect(); renderForm(); renderLastSet();
-    renderRepsRow();
-    renderRx(); renderStats(); renderSparkline(); renderHistory();
+    renderExerciseCards();
     renderTodaysWorkout();
     renderPastWorkouts();
-    // Pre-fill weight input with last logged weight (or starting weight)
-    const ex = getCurrentEx();
-    if (ex && !ex.bw) {
-      const logs = getLogs();
-      const w = logs.length ? logs[logs.length - 1].weight : (ex.startWeight || 0);
-      $('weightInput').value = w;
-    }
   }
 
   // ============================================================
@@ -2012,7 +1848,7 @@ img, video, canvas, svg { max-width: 100%; }
 
   function logsByDay() {
     const byDay = {};
-    state.exercises.forEach(ex => {
+    getAllExercises().forEach(ex => {
       (state.logs[ex.id] || []).forEach(l => {
         const dk = l.date.slice(0, 10);
         if (!byDay[dk]) byDay[dk] = [];
@@ -2142,151 +1978,77 @@ img, video, canvas, svg { max-width: 100%; }
     body.style.flexDirection = 'column';
     toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
   });
-  $('detailsToggle').addEventListener('click', () => {
-    const body = $('detailsBody');
-    const toggle = $('detailsToggle');
-    const open = body.style.display !== 'none';
-    body.style.display = open ? 'none' : 'block';
-    toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
-  });
-
   // ============================================================
-  // EVENT WIRING
+  // EVENT WIRING — one delegated listener covers every exercise card,
+  // since the routine is fixed and cards are (re)built by renderExerciseCards().
   // ============================================================
-  $('exSelect').addEventListener('change', e => {
-    state.currentEx = e.target.value; saveState(); renderAll();
-  });
-  $('weightDownBtn').addEventListener('click', () => {
-    const ex = getCurrentEx(); if (!ex || ex.bw) return;
-    const w = parseFloat($('weightInput').value) || 0;
-    $('weightInput').value = Math.max(0, w - (ex.step || 2.5));
-  });
-  $('weightUpBtn').addEventListener('click', () => {
-    const ex = getCurrentEx(); if (!ex || ex.bw) return;
-    const w = parseFloat($('weightInput').value) || 0;
-    $('weightInput').value = w + (ex.step || 2.5);
-  });
-  // Delegated click handler — reps row is regenerated per exercise via
-  // renderRepsRow(), so we listen on the container rather than the
-  // individual buttons.
-  $('repsRow').addEventListener('click', (e) => {
-    const p = e.target.closest('.po-reps-pill');
-    if (!p) return;
-    $('repsRow').querySelectorAll('.po-reps-pill').forEach(x => x.classList.remove('active'));
-    p.classList.add('active');
-    $('repsRow').dataset.value = p.dataset.v;
-  });
-  $('logBtn').addEventListener('click', () => {
-    const ex = getCurrentEx();
+  $('exerciseCards').addEventListener('click', (e) => {
+    const card = e.target.closest('.po-ex-card');
+    if (!card) return;
+    const exId = card.dataset.exId;
+    const ex = getAllExercises().find(x => x.id === exId);
     if (!ex) return;
-    const reps = parseInt($('repsRow').dataset.value, 10) || 0;
-    if (reps <= 0) { alert('Pick a rep count.'); return; }
-    const w = ex.bw ? 0 : (parseFloat($('weightInput').value) || 0);
-    if (!ex.bw && w <= 0) { alert('Enter a weight.'); return; }
-    const arr = state.logs[ex.id] || [];
-    arr.push({ weight: w, reps: reps, date: new Date().toISOString() });
-    state.logs[ex.id] = arr;
-    saveState(); renderAll();
-    // Strength changed → composition estimate may shift
-    if (typeof wtRender === 'function') wtRender();
-    // Tiny pulse on the button so the user feels the save
-    const btn = $('logBtn');
-    btn.style.transition = 'transform 0.15s';
-    btn.style.transform = 'scale(0.96)';
-    setTimeout(() => { btn.style.transform = ''; }, 160);
-  });
 
-  // ============================================================
-  // EXERCISE MODAL (add / edit)
-  // ============================================================
-  let editingExId = null;
-  let modalDay = null;
-  function renderModalSegs() {
-    $('exDaySeg').innerHTML = state.days.map(d =>
-      '<button data-day="' + d.id + '" class="' + (modalDay === d.id ? 'active' : '') + '">' + escape(d.name) + '</button>'
-    ).join('');
-    $('exDaySeg').querySelectorAll('button').forEach(b => {
-      b.addEventListener('click', () => {
-        modalDay = b.dataset.day;
-        $('exDaySeg').querySelectorAll('button').forEach(x => x.classList.remove('active'));
-        b.classList.add('active');
-      });
-    });
-  }
-  function openExModal(mode, ex) {
-    editingExId = mode === 'edit' ? ex.id : null;
-    $('exModalTitle').textContent = mode === 'edit' ? 'Edit exercise' : 'Add exercise';
-    $('exDelete').style.display = mode === 'edit' ? 'block' : 'none';
-    if (mode === 'edit') {
-      $('exName').value = ex.name;
-      modalDay = ex.day;
-      $('exBw').checked = !!ex.bw;
-      $('exStartWeight').value = ex.startWeight || 0;
-      $('exRepMin').value = ex.repMin;
-      $('exRepMax').value = ex.repMax;
-      $('exStep').value = ex.step;
-    } else {
-      $('exName').value = '';
-      modalDay = currentDayId();
-      $('exBw').checked = false;
-      $('exStartWeight').value = 20;
-      $('exRepMin').value = 6;
-      $('exRepMax').value = 8;
-      $('exStep').value = 2.5;
+    if (e.target.closest('[data-action="weightDown"]')) {
+      if (ex.bw) return;
+      const input = card.querySelector('[data-action="weightInput"]');
+      const w = parseFloat(input.value) || 0;
+      input.value = Math.max(0, w - (ex.step || 2.5));
+      return;
     }
-    renderModalSegs();
-    toggleBwFields();
-    $('exModalBg').classList.add('show');
-    setTimeout(() => $('exName').focus(), 60);
-  }
-  function toggleBwFields() {
-    const isBw = $('exBw').checked;
-    $('exStartWeightField').style.display = isBw ? 'none' : '';
-    $('exStepField').style.display = isBw ? 'none' : '';
-  }
-  $('exBw').addEventListener('change', toggleBwFields);
-  $('addExBtn').addEventListener('click', () => openExModal('add'));
-  $('editExBtn').addEventListener('click', () => {
-    const ex = getCurrentEx();
-    if (ex) openExModal('edit', ex);
-  });
-  $('exModalCancel').addEventListener('click', () => $('exModalBg').classList.remove('show'));
-  $('exModalSave').addEventListener('click', () => {
-    const name = $('exName').value.trim();
-    if (!name) { alert('Name is required.'); return; }
-    if (!modalDay) { alert('Pick a day.'); return; }
-    const isBw = $('exBw').checked;
-    const repMin = parseInt($('exRepMin').value, 10) || 6;
-    const repMax = parseInt($('exRepMax').value, 10) || 8;
-    const data = {
-      name, day: modalDay,
-      bw: isBw,
-      startWeight: isBw ? 0 : (parseFloat($('exStartWeight').value) || 0),
-      repMin, repMax,
-      step: isBw ? 1 : (parseFloat($('exStep').value) || 2.5)
-    };
-    if (editingExId) {
-      const ex = state.exercises.find(e => e.id === editingExId);
-      if (ex) Object.assign(ex, data);
-    } else {
-      const ex = Object.assign({ id: uid() }, data);
-      state.exercises.push(ex);
-      state.currentEx = ex.id;
+    if (e.target.closest('[data-action="weightUp"]')) {
+      if (ex.bw) return;
+      const input = card.querySelector('[data-action="weightInput"]');
+      const w = parseFloat(input.value) || 0;
+      input.value = w + (ex.step || 2.5);
+      return;
     }
-    saveState();
-    $('exModalBg').classList.remove('show');
-    renderAll();
-  });
-  $('exDelete').addEventListener('click', () => {
-    if (!editingExId) return;
-    if (!confirm('Delete this exercise and all its logs?')) return;
-    state.exercises = state.exercises.filter(e => e.id !== editingExId);
-    delete state.logs[editingExId];
-    if (state.currentEx === editingExId) state.currentEx = null;
-    editingExId = null;
-    saveState();
-    $('exModalBg').classList.remove('show');
-    renderAll();
+    const repsPill = e.target.closest('.po-reps-pill');
+    if (repsPill) {
+      const row = repsPill.closest('[data-role="repsRow"]');
+      row.querySelectorAll('.po-reps-pill').forEach(x => x.classList.remove('active'));
+      repsPill.classList.add('active');
+      row.dataset.value = repsPill.dataset.v;
+      return;
+    }
+    if (e.target.closest('[data-action="logBtn"]')) {
+      const reps = parseInt(card.querySelector('[data-role="repsRow"]').dataset.value, 10) || 0;
+      if (reps <= 0) { alert('Pick a rep count.'); return; }
+      const weightInput = card.querySelector('[data-action="weightInput"]');
+      const w = ex.bw ? 0 : (parseFloat(weightInput.value) || 0);
+      if (!ex.bw && w <= 0) { alert('Enter a weight.'); return; }
+      const arr = state.logs[ex.id] || [];
+      arr.push({ weight: w, reps: reps, date: new Date().toISOString() });
+      state.logs[ex.id] = arr;
+      saveState();
+      populateCard(ex, card);
+      renderTodaysWorkout(); renderPastWorkouts();
+      if (typeof wtRender === 'function') wtRender();
+      const btn = e.target.closest('[data-action="logBtn"]');
+      btn.style.transition = 'transform 0.15s';
+      btn.style.transform = 'scale(0.96)';
+      setTimeout(() => { btn.style.transform = ''; }, 160);
+      return;
+    }
+    if (e.target.closest('[data-action="detailsToggle"]')) {
+      const toggle = e.target.closest('[data-action="detailsToggle"]');
+      const body = card.querySelector('[data-role="detailsBody"]');
+      const open = body.style.display !== 'none';
+      body.style.display = open ? 'none' : 'block';
+      toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
+      return;
+    }
+    if (e.target.closest('[data-action="histDel"]')) {
+      if (!confirm('Delete this log?')) return;
+      const realIdx = parseInt(e.target.closest('[data-action="histDel"]').dataset.idx, 10);
+      const arr = state.logs[ex.id] || [];
+      arr.splice(realIdx, 1);
+      if (!arr.length) delete state.logs[ex.id]; else state.logs[ex.id] = arr;
+      saveState();
+      populateCard(ex, card);
+      renderTodaysWorkout(); renderPastWorkouts();
+      return;
+    }
   });
 
   // ============================================================
@@ -2682,7 +2444,7 @@ img, video, canvas, svg { max-width: 100%; }
     let strengthRatios = [];
     let workoutDays = new Set();
     let totalVolumeInWindow = 0;
-    state.exercises.forEach(ex => {
+    getAllExercises().forEach(ex => {
       const logs = (state.logs[ex.id] || []).slice();
       if (logs.length < 2 || ex.bw) {
         // Still count volume / sessions even for bodyweight + sparse exercises
