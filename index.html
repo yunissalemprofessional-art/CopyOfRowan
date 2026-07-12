@@ -655,7 +655,7 @@ body::after {
     <div class="day-ring-text">
       <div class="day-ring-status"    id="dayRingStatus">Loading…</div>
       <div class="day-ring-remaining" id="dayRingRemaining">—</div>
-      <div class="day-ring-hours">5:00 AM – 10:00 PM</div>
+      <div class="day-ring-hours" id="dayRingHours">5:00 AM – 10:00 PM</div>
     </div>
   </div>
 
@@ -966,6 +966,23 @@ body::after {
     const h = Math.floor(totalMin / 60);
     const m = Math.floor(totalMin % 60);
     return h + 'h ' + m + 'm';
+  }
+
+  // Sleep tracker (health.html) logs bedtime/wake under sleep:<date> —
+  // same localStorage origin, so this page can read it directly.
+  function fmtTimeFull(hhmm) {
+    let [h, m] = hhmm.split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12; if (h === 0) h = 12;
+    return h + ':' + pad2(m) + ' ' + ampm;
+  }
+  function updateSleepHoursLabel() {
+    const el = document.getElementById('dayRingHours');
+    if (!el) return;
+    const entry = storeGet('sleep:' + getActiveDateString());
+    const wake = (entry && entry.wake) || '06:00';
+    const bed  = (entry && entry.bed)  || '22:30';
+    el.textContent = fmtTimeFull(wake) + ' – ' + fmtTimeFull(bed);
   }
 
   const C = 2 * Math.PI * 52;
@@ -1352,14 +1369,15 @@ body::after {
   loadTomorrow();
   renderStreak();
   updateDayRing();
-  setInterval(updateDayRing, 60 * 1000);
+  updateSleepHoursLabel();
+  setInterval(() => { updateDayRing(); updateSleepHoursLabel(); }, 60 * 1000);
   startTicker();
   wireFaith();
   loadFaith();
 
   // Re-render when storage changes from another tab (or our bridged parent).
   window.addEventListener('storage', () => {
-    loadToday(); loadTomorrow(); renderStreak(); loadFaith();
+    loadToday(); loadTomorrow(); renderStreak(); loadFaith(); updateSleepHoursLabel();
   });
 })();
 </script>

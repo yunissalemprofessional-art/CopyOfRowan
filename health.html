@@ -164,6 +164,102 @@ main {
   line-height: 1.2;
 }
 
+/* ----- Sleep: streak pill (same pattern as the Main tab's goal streak) ----- */
+.sleep-streak-row { display: flex; margin-bottom: 16px; }
+.sleep-streak {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-strong);
+  color: var(--text-tertiary);
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.10em; text-transform: uppercase;
+  transition: background 0.25s, color 0.25s, border-color 0.25s;
+}
+.sleep-streak-icon { font-size: 13px; }
+.sleep-streak-num {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.sleep-streak.sleep-streak-active {
+  background: rgba(242,192,99,0.10);
+  color: #F2C063;
+  border-color: rgba(242,192,99,0.32);
+}
+.sleep-streak.sleep-streak-active .sleep-streak-icon {
+  filter: drop-shadow(0 0 6px rgba(242,192,99,0.6));
+}
+
+/* ----- Sleep: bedtime / wake inputs ----- */
+.sleep-fields {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  margin-bottom: 12px;
+}
+.sleep-field { display: flex; flex-direction: column; gap: 6px; }
+.sleep-field label {
+  font-size: 10.5px; color: var(--text-tertiary); font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  display: flex; align-items: center; gap: 6px;
+}
+.sleep-target {
+  font-size: 9.5px; color: var(--text-quaternary); font-weight: 500;
+  letter-spacing: 0; text-transform: none;
+}
+.sleep-field input[type="time"] {
+  padding: 12px; border-radius: 10px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-family: var(--font-mono); font-size: 16px; font-weight: 600;
+  color-scheme: dark;
+}
+.sleep-field input[type="time"]:focus {
+  outline: none; border-color: rgba(255,255,255,0.40);
+  background: var(--bg-input-focus);
+}
+.sleep-save-btn {
+  width: 100%; padding: 11px; margin-bottom: 4px;
+  border-radius: 10px; border: 1px solid rgba(255,255,255,0.85);
+  background: linear-gradient(180deg, #FFFFFF 0%, #E8E5DD 100%);
+  color: #0A0A0B; font-family: inherit; font-size: 13px; font-weight: 700;
+  cursor: pointer;
+}
+.sleep-save-btn:active { transform: scale(0.98); }
+.sleep-saved-note {
+  font-size: 11px; color: var(--accent); text-align: center;
+  min-height: 16px; margin-bottom: 4px;
+}
+
+/* ----- Sleep: rolling 7-day history (same pattern as the Water tracker) ----- */
+.sleep-hist { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-soft); }
+.sleep-hist-title {
+  font-size: 10.5px; color: var(--text-tertiary); font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 8px;
+}
+.sleep-hist-row {
+  display: grid; grid-template-columns: 60px 1fr auto; gap: 10px;
+  padding: 9px 0; align-items: center;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 13px;
+}
+.sleep-hist-row:last-child { border-bottom: none; }
+.sleep-hist-date { font-size: 11px; color: var(--text-tertiary); font-family: var(--font-mono); }
+.sleep-hist-bar-wrap {
+  height: 8px; background: rgba(255,255,255,0.04); border-radius: 4px; overflow: hidden;
+}
+.sleep-hist-bar-fill {
+  height: 100%; background: linear-gradient(90deg, var(--accent), #6BE3A4);
+  border-radius: 4px;
+}
+.sleep-hist-bar-fill.miss { background: rgba(255,138,138,0.4); }
+.sleep-hist-count {
+  font-family: var(--font-mono); font-size: 11.5px;
+  color: var(--text-secondary); font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 .attribution {
   text-align: center; margin-top: 28px;
   font-family: var(--font-mono);
@@ -201,6 +297,40 @@ main {
       <div class="stack-item-body">
         <div class="stack-item-name" id="stackLabel">Took my supplements today</div>
       </div>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-top:32px">Sleep</div>
+  <div class="stack-card">
+    <div class="stack-head">
+      <div class="sf-eyebrow">Sleep</div>
+      <div class="sf-title">Bedtime &amp; wake</div>
+    </div>
+
+    <div class="sleep-streak-row">
+      <div class="sleep-streak" id="sleepStreak">
+        <span class="sleep-streak-icon">⚡</span>
+        <span class="sleep-streak-num" id="sleepStreakNum">0</span>
+        <span>day streak</span>
+      </div>
+    </div>
+
+    <div class="sleep-fields">
+      <div class="sleep-field">
+        <label>Bedtime <span class="sleep-target">target 10:30p</span></label>
+        <input type="time" id="bedtimeInput">
+      </div>
+      <div class="sleep-field">
+        <label>Wake <span class="sleep-target">target 6:00a</span></label>
+        <input type="time" id="wakeInput">
+      </div>
+    </div>
+    <button type="button" class="sleep-save-btn" id="sleepSaveBtn">Save</button>
+    <div class="sleep-saved-note" id="sleepSavedNote"></div>
+
+    <div class="sleep-hist">
+      <div class="sleep-hist-title">Last 7 days</div>
+      <div id="sleepHistory"></div>
     </div>
   </div>
 
@@ -254,6 +384,153 @@ main {
   }, 60 * 1000);
 
   render();
+
+  // ============================================================
+  // SLEEP — bedtime/wake logged once per day (keyed like Stack, via
+  // getActiveDate()'s 6am rollover), a day-streak for "in bed by
+  // 10:30" (same pattern as the Main tab's goal streak), and a
+  // rolling 7-day history list (same pattern as the Water tracker's
+  // Last 7 Days list).
+  // ============================================================
+  const SLEEP_TARGET_BED  = '22:30';
+  const SLEEP_TARGET_WAKE = '06:00';
+  const SLEEP_WAKE_CUTOFF = '09:00';
+
+  function storeListKeys(prefix) {
+    const out = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.indexOf(prefix) === 0) out.push(k);
+    }
+    return out;
+  }
+  function sleepKey(dateStr) { return 'sleep:' + dateStr; }
+  function getSleep(dateStr) { return storeGet(sleepKey(dateStr)); }
+  function setSleep(dateStr, data) { storeSet(sleepKey(dateStr), data); }
+
+  function timeToMinutes(hhmm) {
+    const [h, m] = hhmm.split(':').map(Number);
+    return h * 60 + m;
+  }
+  // Bedtimes logged as an early-morning hour (e.g. 00:30) are past
+  // midnight — later than any evening bedtime — so normalize by
+  // treating anything before noon as "next day" for comparison.
+  function bedMinutesNormalized(hhmm) {
+    let mins = timeToMinutes(hhmm);
+    if (mins < 12 * 60) mins += 24 * 60;
+    return mins;
+  }
+  function sleepDurationHours(bed, wake) {
+    let diff = timeToMinutes(wake) - timeToMinutes(bed);
+    if (diff <= 0) diff += 24 * 60;
+    return diff / 60;
+  }
+  function fmtTime12(hhmm) {
+    let [h, m] = hhmm.split(':').map(Number);
+    const suffix = h >= 12 ? 'p' : 'a';
+    h = h % 12; if (h === 0) h = 12;
+    return h + ':' + String(m).padStart(2, '0') + suffix;
+  }
+  function inBedOnTime(bed) {
+    return bedMinutesNormalized(bed) <= timeToMinutes(SLEEP_TARGET_BED);
+  }
+
+  function loadSleepStreak() {
+    const s = storeGet('sleep_streak_v1');
+    if (s && typeof s.count === 'number') return s;
+    return { count: 0, lastProcessedDate: '' };
+  }
+  function saveSleepStreak(s) { storeSet('sleep_streak_v1', s); }
+  function processSleepStreak() {
+    const s = loadSleepStreak();
+    const todayDateStr = getActiveDate();
+    const keys = storeListKeys('sleep:')
+      .map(k => k.slice('sleep:'.length))
+      .filter(d => d < todayDateStr)
+      .sort();
+    keys.forEach(dateStr => {
+      if (s.lastProcessedDate && dateStr <= s.lastProcessedDate) return;
+      const entry = getSleep(dateStr);
+      if (!entry || !entry.bed) { /* no log — don't break the streak */ }
+      else if (inBedOnTime(entry.bed)) s.count += 1;
+      else s.count = 0;
+      s.lastProcessedDate = dateStr;
+    });
+    saveSleepStreak(s);
+  }
+  function renderSleepStreak() {
+    const s = loadSleepStreak();
+    document.getElementById('sleepStreakNum').textContent = s.count;
+    document.getElementById('sleepStreak').classList.toggle('sleep-streak-active', s.count > 0);
+  }
+
+  function renderSleepHistory() {
+    const wrap = document.getElementById('sleepHistory');
+    const targetDuration = sleepDurationHours(SLEEP_TARGET_BED, SLEEP_TARGET_WAKE);
+    const dows = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const base = new Date();
+    if (base.getHours() < 6) base.setDate(base.getDate() - 1);
+    const rows = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(base);
+      d.setDate(d.getDate() - i);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      rows.push({ date: d, key: `${y}-${m}-${dd}` });
+    }
+    wrap.innerHTML = rows.map(({ date, key }) => {
+      const lbl = dows[date.getDay()] + ' ' + (date.getMonth() + 1) + '/' + date.getDate();
+      const entry = getSleep(key);
+      if (!entry || !entry.bed || !entry.wake) {
+        return '<div class="sleep-hist-row">'
+          + '<span class="sleep-hist-date">' + lbl + '</span>'
+          + '<div class="sleep-hist-bar-wrap"><div class="sleep-hist-bar-fill miss" style="width:0%"></div></div>'
+          + '<span class="sleep-hist-count">—</span>'
+          + '</div>';
+      }
+      const dur = sleepDurationHours(entry.bed, entry.wake);
+      const pct = Math.min(100, (dur / targetDuration) * 100);
+      const cls = inBedOnTime(entry.bed) ? '' : 'miss';
+      return '<div class="sleep-hist-row">'
+        + '<span class="sleep-hist-date">' + lbl + '</span>'
+        + '<div class="sleep-hist-bar-wrap"><div class="sleep-hist-bar-fill ' + cls + '" style="width:' + pct + '%"></div></div>'
+        + '<span class="sleep-hist-count">' + fmtTime12(entry.bed) + '–' + fmtTime12(entry.wake) + '</span>'
+        + '</div>';
+    }).join('');
+  }
+
+  function renderSleep() {
+    processSleepStreak();
+    renderSleepStreak();
+    renderSleepHistory();
+  }
+
+  (function initSleepInputs() {
+    const today = getSleep(getActiveDate());
+    if (today) {
+      if (today.bed) document.getElementById('bedtimeInput').value = today.bed;
+      if (today.wake) document.getElementById('wakeInput').value = today.wake;
+    }
+  })();
+
+  document.getElementById('sleepSaveBtn').addEventListener('click', () => {
+    const bed = document.getElementById('bedtimeInput').value;
+    const wake = document.getElementById('wakeInput').value;
+    if (!bed && !wake) return;
+    setSleep(getActiveDate(), { bed: bed || null, wake: wake || null });
+    const note = document.getElementById('sleepSavedNote');
+    note.textContent = 'Saved';
+    setTimeout(() => { note.textContent = ''; }, 1500);
+    renderSleep();
+  });
+
+  renderSleep();
+
+  window.addEventListener('storage', () => {
+    render();
+    renderSleep();
+  });
 })();
 </script>
 
@@ -262,8 +539,8 @@ document.addEventListener('DOMContentLoaded', function () {
   if (typeof initCloudSync !== 'function') return;
   initCloudSync({
     appKey: 'health',
-    syncedKeys: ['po_water_v1'],
-    syncedPrefixes: ['stack:taken:'],
+    syncedKeys: ['po_water_v1', 'sleep_streak_v1'],
+    syncedPrefixes: ['stack:taken:', 'sleep:'],
     onApplied: function () { window.dispatchEvent(new Event('storage')); }
   });
 });
