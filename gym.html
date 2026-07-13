@@ -32,14 +32,16 @@ const CONFIG = {
   // Split rotation — the order your training days cycle through, repeating
   // forever. Today's day is computed automatically from this + splitAnchor,
   // no manual picking. Edit the rotation any time in Settings.
-  splitRotation: ["push", "pull", "legs"],
+  // This is Yunis's fixed weekly split: Mon Push, Tue Sprints, Wed Pull,
+  // Thu Rest (+yoga), Fri Legs, Sat Sprints, Sun Rest.
+  splitRotation: ["push", "sprints", "pull", "rest", "legs", "sprints", "rest"],
 
   // Anchor: pair a real calendar date with which split day fell on it.
   // The rotation advances from this point. Set `date` to a recent day
   // when you knew what split you were on, and `splitId` to that day.
   // Edit this in Settings if your split drifts.
   splitAnchor: {
-    date: "2026-07-12",
+    date: "2026-07-13",   // Monday
     splitId: "push"
   },
 
@@ -71,20 +73,25 @@ const CONFIG = {
   // The routine is fixed — there's no in-app way to add/edit/delete
   // exercises anymore. This list IS the schedule; edit it here to change
   // what you log. (Source: Hevy's beginner Push/Pull/Legs program.)
+  // Yunis's actual routine (3 sets each, 5–15 rep ranges):
+  //   Push — Bench Press, OHP, Incline DB Press, Tricep Pushdown, Lateral Raises
+  //   Pull — Deadlift, Lat Pulldown, Barbell Row, Face Pulls, Bicep Curls
+  //   Legs — Squat, Romanian Deadlift, Leg Press, Leg Curl, Calf Raises
   defaultExercises: [
     { name: "Barbell Bench Press",      day: "push", repMin: 5,  repMax: 8,  step: 2.5,  startWeight: 60 },
-    { name: "Dumbbell Shoulder Press",   day: "push", repMin: 5,  repMax: 8,  step: 2.5,  startWeight: 20 },
-    { name: "Pec Deck Fly",              day: "push", repMin: 10, repMax: 15, step: 2.5,  startWeight: 20 },
-    { name: "Dumbbell Lateral Raise",    day: "push", repMin: 12, repMax: 15, step: 1.25, startWeight: 8 },
+    { name: "Overhead Press",            day: "push", repMin: 5,  repMax: 8,  step: 2.5,  startWeight: 30 },
+    { name: "Incline Dumbbell Press",    day: "push", repMin: 8,  repMax: 12, step: 2.5,  startWeight: 20 },
     { name: "Triceps Rope Pushdown",     day: "push", repMin: 10, repMax: 15, step: 2.5,  startWeight: 20 },
+    { name: "Dumbbell Lateral Raise",    day: "push", repMin: 12, repMax: 15, step: 1.25, startWeight: 8 },
+    { name: "Deadlift",                  day: "pull", repMin: 5,  repMax: 8,  step: 5,    startWeight: 80 },
     { name: "Cable Lat Pulldown",        day: "pull", repMin: 8,  repMax: 12, step: 2.5,  startWeight: 40 },
-    { name: "Seated Cable Row V-Grip",   day: "pull", repMin: 10, repMax: 12, step: 2.5,  startWeight: 40 },
-    { name: "Dumbbell Shrug",            day: "pull", repMin: 10, repMax: 12, step: 1.25, startWeight: 15 },
-    { name: "Dumbbell Hammer Curl",      day: "pull", repMin: 10, repMax: 12, step: 1.25, startWeight: 10 },
+    { name: "Barbell Row",               day: "pull", repMin: 8,  repMax: 12, step: 2.5,  startWeight: 40 },
     { name: "Face Pull",                 day: "pull", repMin: 12, repMax: 15, step: 2.5,  startWeight: 15 },
+    { name: "Dumbbell Bicep Curl",       day: "pull", repMin: 10, repMax: 12, step: 1.25, startWeight: 10 },
+    { name: "Barbell Squat",             day: "legs", repMin: 5,  repMax: 8,  step: 2.5,  startWeight: 60 },
+    { name: "Romanian Deadlift",         day: "legs", repMin: 8,  repMax: 12, step: 2.5,  startWeight: 60 },
     { name: "Leg Press Machine",         day: "legs", repMin: 8,  repMax: 12, step: 5,    startWeight: 80 },
     { name: "Lying Leg Curl Machine",    day: "legs", repMin: 10, repMax: 12, step: 2.5,  startWeight: 25 },
-    { name: "Leg Extension Machine",     day: "legs", repMin: 10, repMax: 12, step: 2.5,  startWeight: 25 },
     { name: "Standing Calf Raise Machine", day: "legs", repMin: 12, repMax: 15, step: 5,  startWeight: 30 }
   ]
 };
@@ -1506,6 +1513,15 @@ img, video, canvas, svg { max-width: 100%; }
         if (s.splitAnchor && s.splitAnchor.index != null) s.splitAnchor.index = s.splitAnchor.index % 3;
       }
     }
+    // One-time migration to the real weekly split (Mon Push, Tue Sprints,
+    // Wed Pull, Thu Rest, Fri Legs, Sat Sprints, Sun Rest). Devices that
+    // synced the old rolling 3-day Push/Pull/Legs cycle get moved over
+    // once; after that the rotation is fully editable in Settings again.
+    if (!s._weeklySplitMigrated) {
+      s.splitRotation = ['Push', 'Sprints', 'Pull', 'Rest', 'Legs', 'Sprints', 'Rest'];
+      s.splitAnchor = { date: '2026-07-13', index: 0 }; // Mon Jul 13, 2026 = Push
+      s._weeklySplitMigrated = true;
+    }
     if (!s.splitAnchor || !s.splitAnchor.date || s.splitAnchor.index == null) {
       // Map old anchor-by-id to new anchor-by-index, or default to today=index 0.
       const oldId = (CONFIG.splitAnchor && CONFIG.splitAnchor.splitId) || null;
@@ -1552,7 +1568,10 @@ img, video, canvas, svg { max-width: 100%; }
   function currentDayId() {
     const split = todaySplit();
     const match = state.days.find(d => d.name.toLowerCase() === (split.name || '').toLowerCase());
-    return match ? match.id : (state.days[0] ? state.days[0].id : null);
+    // No match (e.g. a Sprints or Rest day) → no lifting exercises today.
+    // Falling back to the first day here would wrongly show Push exercises
+    // on every non-lifting day.
+    return match ? match.id : null;
   }
   function getFiltered() {
     const dayId = currentDayId();
@@ -1662,7 +1681,14 @@ img, video, canvas, svg { max-width: 100%; }
     const container = $('exerciseCards');
     const list = getFiltered();
     if (!list.length) {
-      container.innerHTML = '<div class="po-no-ex">No exercises scheduled for today.</div>';
+      const split = (todaySplit().name || '').toLowerCase();
+      if (split === 'sprints') {
+        container.innerHTML = '<div class="po-no-ex">Sprint day — warm-up jog, 6–8 × 100m with full recovery, cooldown walk. No lifts to log.</div>';
+      } else if (split === 'rest') {
+        container.innerHTML = '<div class="po-no-ex">Rest day — recover. Wollas Method AM/PM still applies below.</div>';
+      } else {
+        container.innerHTML = '<div class="po-no-ex">No exercises scheduled for today.</div>';
+      }
       return;
     }
     container.innerHTML = list.map(buildExerciseCardHTML).join('');
@@ -1814,7 +1840,11 @@ img, video, canvas, svg { max-width: 100%; }
     try {
       const rot = state.splitRotation;
       if (!rot || !rot.length) return { name: '—', index: 0 };
-      const a = new Date(state.splitAnchor.date);
+      // Parse the anchor date as LOCAL time. new Date('2026-07-13') would
+      // parse as UTC midnight, which in US timezones is the previous local
+      // day — silently shifting the whole rotation by one day.
+      const ap = String(state.splitAnchor.date).slice(0, 10).split('-').map(Number);
+      const a = new Date(ap[0], ap[1] - 1, ap[2]);
       const t = new Date();
       a.setHours(0,0,0,0); t.setHours(0,0,0,0);
       const diffDays = Math.round((t - a) / 86400000);

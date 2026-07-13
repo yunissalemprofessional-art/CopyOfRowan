@@ -655,7 +655,7 @@ body::after {
     <div class="day-ring-text">
       <div class="day-ring-status"    id="dayRingStatus">Loading…</div>
       <div class="day-ring-remaining" id="dayRingRemaining">—</div>
-      <div class="day-ring-hours" id="dayRingHours">5:00 AM – 10:00 PM</div>
+      <div class="day-ring-hours" id="dayRingHours">6:00 AM – 10:30 PM</div>
     </div>
   </div>
 
@@ -733,8 +733,10 @@ body::after {
   // Paste your Anthropic key here to enable ✨ Polish. Empty = falls back to plain add.
   const ANTHROPIC_API_KEY = '';
 
-  const WAKE_HOUR  = 5;
-  const SLEEP_HOUR = 22;
+  // Aligned with the sleep targets on the Health tab (wake 6:00 AM,
+  // bed 10:30 PM) so the ring math matches the hours shown below it.
+  const WAKE_HOUR  = 6;
+  const SLEEP_HOUR = 22.5;
 
   // ---------- storage helpers ----------
   function storeGet(key) {
@@ -1363,8 +1365,11 @@ body::after {
   );
 
   // ---------- Boot ----------
-  rollover();
+  // processStreak MUST run before rollover: rollover deletes every
+  // past goals: key, so if it ran first the streak would never see
+  // a completed day and could never increment.
   processStreak();
+  rollover();
   loadToday();
   loadTomorrow();
   renderStreak();
@@ -1386,6 +1391,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (typeof initCloudSync !== 'function') return;
   initCloudSync({
     appKey: 'goals',
+    syncedKeys: ['goal_streak_v1'],
     syncedPrefixes: ['goals:', 'faith:'],
     onApplied: function () {
       window.dispatchEvent(new CustomEvent('goals-changed'));

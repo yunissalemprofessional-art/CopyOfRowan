@@ -308,10 +308,18 @@ main {
     monday.setDate(d.getDate() + diff);
     return monday;
   }
-  function weekKey() { return dateToKeyStr(mondayOf(new Date())); }
+  // "Now" with the same 6 AM day boundary as getActiveDate() — without
+  // this, between midnight and 6 AM the weekly counts and Monday reset
+  // would flip a day earlier than the daily checkboxes do.
+  function activeNow() {
+    const now = new Date();
+    if (now.getHours() < 6) now.setDate(now.getDate() - 1);
+    return now;
+  }
+  function weekKey() { return dateToKeyStr(mondayOf(activeNow())); }
   function currentWeekDateKeys() {
-    const monday = mondayOf(new Date());
-    const today = new Date();
+    const monday = mondayOf(activeNow());
+    const today = activeNow();
     const out = [];
     for (let d = new Date(monday); d <= today; d.setDate(d.getDate() + 1)) {
       out.push(dateToKeyStr(new Date(d)));
