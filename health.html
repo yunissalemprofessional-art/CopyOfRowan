@@ -164,6 +164,50 @@ main {
   line-height: 1.2;
 }
 
+/* ----- Vitamins tracker (violet accent) ----- */
+.vitamins-card { border-left: 3px solid #A78BFA; }
+.vit-group-label {
+  font-family: var(--font-mono);
+  font-size: 10.5px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin: 4px 0 8px;
+}
+.vit-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+}
+@media (max-width: 600px) { .vit-grid { grid-template-columns: 1fr; } }
+.vit-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--bg-secondary);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.2s;
+}
+.vit-item:hover { background: rgba(255,255,255,0.05); }
+.vit-item input[type="checkbox"] {
+  width: 18px; height: 18px;
+  accent-color: #A78BFA;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.vit-item.checked { background: rgba(167,139,250,0.08); }
+.vit-item.checked .vit-name {
+  color: var(--text-tertiary);
+  text-decoration: line-through;
+}
+.vit-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.vit-progress {
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary);
+  margin-bottom: 12px;
+}
+.vit-progress.done { color: #A78BFA; }
+
 /* ----- Sleep: streak pill (same pattern as the Main tab's goal streak) ----- */
 .sleep-streak-row { display: flex; margin-bottom: 16px; }
 .sleep-streak {
@@ -366,18 +410,19 @@ main {
 <main>
   <div class="section-title">Daily Stack</div>
 
-  <div class="stack-card">
+  <div class="stack-card vitamins-card">
     <div class="stack-head">
-      <div class="sf-eyebrow">Supplements</div>
-      <div class="sf-title">Daily reminder</div>
+      <div class="sf-eyebrow">Vitamins</div>
+      <div class="sf-title">Daily stack</div>
     </div>
 
-    <div class="stack-item" id="stackItem">
-      <button class="stack-check" id="stackCheck" aria-label="Mark supplements taken"></button>
-      <div class="stack-item-body">
-        <div class="stack-item-name" id="stackLabel">Took my supplements today</div>
-      </div>
-    </div>
+    <div class="vit-progress" id="vitProgress">0/12 taken</div>
+
+    <div class="vit-group-label">Morning</div>
+    <div class="vit-grid" id="vitMorning"></div>
+
+    <div class="vit-group-label" style="margin-top:16px">Night</div>
+    <div class="vit-grid" id="vitNight"></div>
   </div>
 
   <div class="section-title" style="margin-top:32px">Sleep</div>
@@ -491,30 +536,68 @@ main {
     return `${y}-${m}-${d}`;
   }
 
-  let todayKey = `stack:taken:${getActiveDate()}`;
+  // ============================================================
+  // VITAMINS — 12 daily checkboxes split morning/night. All are
+  // daily non-negotiables (no rotation). Stored per active date
+  // (6 AM boundary) under vitamins:<date> as {id: true}.
+  // ============================================================
+  const VITAMINS = {
+    morning: [
+      { id: 'omega3',       name: 'Omega-3' },
+      { id: 'multivitamin', name: 'Brain Booster Multivitamin' },
+      { id: 'b6',           name: 'B6' },
+      { id: 'zinc',         name: 'Zinc' },
+      { id: 'shilajit',     name: 'Shilajit' },
+      { id: 'colostrum',    name: 'Colostrum' },
+      { id: 'd3k2',         name: 'D3+K2' },
+      { id: 'niacinamide',  name: 'Niacinamide' },
+      { id: 'creatine',     name: 'Creatine' },
+      { id: 'ghkcu',        name: 'GHK-Cu (injection)' }
+    ],
+    night: [
+      { id: 'magnesium',    name: 'Magnesium Glycinate' },
+      { id: 'ltheanine',    name: 'L-Theanine' }
+    ]
+  };
+  const VIT_TOTAL = VITAMINS.morning.length + VITAMINS.night.length;
+  function vitKey() { return 'vitamins:' + getActiveDate(); }
 
-  function isTaken() { return !!storeGet(todayKey); }
-  function setTakenState(v) { storeSet(todayKey, v); }
+  (function buildVitamins() {
+    [['morning', 'vitMorning'], ['night', 'vitNight']].forEach(([group, elId]) => {
+      document.getElementById(elId).innerHTML = VITAMINS[group].map(v =>
+        '<label class="vit-item"><input type="checkbox" data-vid="' + v.id + '">'
+        + '<span class="vit-name">' + v.name + '</span></label>'
+      ).join('');
+    });
+  })();
 
   function render() {
-    const taken = isTaken();
-    const checkEl = document.getElementById('stackCheck');
-    const itemEl = document.getElementById('stackItem');
-    checkEl.classList.toggle('checked', taken);
-    checkEl.textContent = taken ? '✓' : '';
-    itemEl.classList.toggle('taken', taken);
+    const taken = storeGet(vitKey()) || {};
+    let count = 0;
+    document.querySelectorAll('.vit-item input[type="checkbox"]').forEach((cb) => {
+      const on = !!taken[cb.dataset.vid];
+      if (on) count++;
+      cb.checked = on;
+      cb.closest('.vit-item').classList.toggle('checked', on);
+    });
+    const prog = document.getElementById('vitProgress');
+    prog.textContent = count + '/' + VIT_TOTAL + ' taken';
+    prog.classList.toggle('done', count === VIT_TOTAL);
   }
 
-  document.getElementById('stackCheck').addEventListener('click', () => {
-    setTakenState(!isTaken());
-    render();
+  ['vitMorning', 'vitNight'].forEach((elId) => {
+    document.getElementById(elId).addEventListener('change', (e) => {
+      const cb = e.target.closest('input[type="checkbox"]');
+      if (!cb) return;
+      const taken = storeGet(vitKey()) || {};
+      if (cb.checked) taken[cb.dataset.vid] = true; else delete taken[cb.dataset.vid];
+      storeSet(vitKey(), taken);
+      render();
+    });
   });
 
-  setInterval(() => {
-    const newKey = `stack:taken:${getActiveDate()}`;
-    if (newKey !== todayKey) todayKey = newKey;
-    render();
-  }, 60 * 1000);
+  // Re-render each minute so the 6 AM boundary resets the checkboxes.
+  setInterval(render, 60 * 1000);
 
   render();
 
@@ -780,7 +863,7 @@ document.addEventListener('DOMContentLoaded', function () {
   initCloudSync({
     appKey: 'health',
     syncedKeys: ['po_water_v1', 'sleep_streak_v1', 'nutrition_targets_v1'],
-    syncedPrefixes: ['stack:taken:', 'sleep:', 'nutrition:'],
+    syncedPrefixes: ['stack:taken:', 'sleep:', 'nutrition:', 'vitamins:'],
     onApplied: function () { window.dispatchEvent(new Event('storage')); }
   });
 });

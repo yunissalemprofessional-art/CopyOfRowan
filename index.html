@@ -238,6 +238,34 @@ body::after {
   .day-ring-status { font-size: 13px; }
 }
 
+/* ===== Dua of the day ===== */
+.dua-card {
+  border-left: 3px solid #D8AB30;
+  margin-bottom: 22px;
+}
+.dua-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 10px;
+}
+.dua-text {
+  font-size: 16px; font-weight: 600;
+  color: #F2DFA7;
+  line-height: 1.55;
+  margin-bottom: 8px;
+}
+.dua-meaning {
+  font-size: 13px; font-style: italic;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+@media (max-width: 480px) {
+  .dua-text { font-size: 15px; }
+  .dua-meaning { font-size: 12.5px; }
+}
+
 /* ===== Component 4: section + To Do List ===== */
 .section { margin-top: 8px; }
 .section-title {
@@ -659,6 +687,12 @@ body::after {
     </div>
   </div>
 
+  <div class="gm-card dua-card" id="duaCard">
+    <div class="dua-eyebrow">Dua of the day · <span id="duaNum">—</span>/50</div>
+    <div class="dua-text" id="duaText">—</div>
+    <div class="dua-meaning" id="duaMeaning">—</div>
+  </div>
+
   <div class="section">
     <div class="section-title">Faith</div>
     <div class="gm-card faith-card">
@@ -786,6 +820,72 @@ body::after {
 
   function todayKey()    { return 'goals:' + getActiveDateString(); }
   function tomorrowKey() { return 'goals:' + getTomorrowDateString(); }
+
+  // ---------- Dua of the day ----------
+  // From "50 Morning Ayaat and Duas". One per day, advancing at the
+  // 6 AM day boundary (same boundary as goals/faith), looping forever.
+  const DUAS = [
+    ["Bismillahir-Rahmanir-Rahim", "In the name of Allah, the Most Merciful, the Especially Merciful."],
+    ["Alhamdulillahi Rabbil-'alamin", "All praise belongs to Allah, Lord of all creation."],
+    ["Ar-Rahmanir-Rahim", "The Most Merciful, the Especially Merciful."],
+    ["Maliki yawmid-din", "Owner of the Day of Judgment."],
+    ["Iyyaka na'budu wa iyyaka nasta'in", "You alone we worship, and You alone we ask for help."],
+    ["Ihdinas-siratal-mustaqim", "Guide us to the straight path."],
+    ["Hasbunallahu wa ni'mal-wakil", "Allah is enough for us, and He is the best Protector."],
+    ["La hawla wa la quwwata illa billah", "There is no power or strength except through Allah."],
+    ["La ilaha illa Anta, subhanaka inni kuntu minaz-zalimin", "There is no god except You. Glory be to You. I was truly among the wrongdoers."],
+    ["Rabbi inni lima anzalta ilayya min khayrin faqir", "My Lord, I am truly in need of whatever good You send down to me."],
+    ["Rabbi zidni 'ilma", "My Lord, increase me in knowledge."],
+    ["Rabbi-shrah li sadri, wa yassir li amri", "My Lord, open my heart and make my task easy for me."],
+    ["Wahlul 'uqdatan min lisani, yafqahu qawli", "Remove the difficulty from my speech so that people may understand me."],
+    ["Rabbana atina fid-dunya hasanah, wa fil-akhirati hasanah, wa qina 'adhaban-nar", "Our Lord, give us good in this world and good in the Hereafter, and protect us from the punishment of the Fire."],
+    ["Rabbana la tuzigh qulubana ba'da idh hadaytana", "Our Lord, do not let our hearts turn away after You have guided us."],
+    ["Wa hab lana min ladunka rahmah, innaka Antal-Wahhab", "Grant us mercy from Yourself. You are truly the Great Giver."],
+    ["Rabbana afrigh 'alayna sabran wa thabbit aqdamana", "Our Lord, pour patience upon us and make our feet firm."],
+    ["Rabbana taqabbal minna, innaka Antas-Sami'ul-'Alim", "Our Lord, accept this from us. You are the All-Hearing, All-Knowing."],
+    ["Rabbana waj'alna muslimayni laka", "Our Lord, make us people who completely submit ourselves to You."],
+    ["Rabbana zalamna anfusana, wa illam taghfir lana wa tarhamna lanakunanna minal-khasirin", "Our Lord, we have wronged ourselves. If You do not forgive us and have mercy upon us, we will be among the losers."],
+    ["Rabbi-ghfir li wa li-walidayya warhamhuma kama rabbayani saghira", "My Lord, forgive me and my parents, and have mercy on them as they raised me when I was young."],
+    ["Rabbi-j'alni muqimas-salati wa min dhurriyyati", "My Lord, make me and my descendants people who consistently establish prayer."],
+    ["Rabbana wa taqabbal du'a", "Our Lord, accept my prayer."],
+    ["Rabbi hab li min ladunka dhurriyyatan tayyibah", "My Lord, grant me righteous offspring from Yourself."],
+    ["Rabbi la tadharni fardan wa Anta khayrul-warithin", "My Lord, do not leave me alone, although You are the best of inheritors."],
+    ["Rabbi a'udhu bika min hamazatish-shayatin", "My Lord, I seek protection in You from the temptations of the devils."],
+    ["Wa a'udhu bika Rabbi an yahdurun", "My Lord, I seek protection in You from them coming near me."],
+    ["Rabbi-ghfir warham wa Anta khayrur-rahimin", "My Lord, forgive me and have mercy on me. You are the best of those who show mercy."],
+    ["Rabbi anzilni munzalan mubarakan wa Anta khayrul-munzilin", "My Lord, allow me to arrive at a blessed place. You are the best to provide a place of arrival."],
+    ["Fa-inna ma'al-'usri yusra", "Surely, with hardship comes ease."],
+    ["Inna ma'al-'usri yusra", "Truly, with hardship comes ease."],
+    ["Wa man yatawakkal 'alallahi fa-huwa hasbuh", "Whoever puts their trust in Allah, then He is enough for them."],
+    ["Innallaha ma'as-sabirin", "Surely, Allah is with those who are patient."],
+    ["Ala bi-dhikrillahi tatma'innul-qulub", "Without a doubt, hearts find peace through the remembrance of Allah."],
+    ["La yukallifullahu nafsan illa wus'aha", "Allah does not burden a soul beyond what it can handle."],
+    ["Ma sha' Allahu la quwwata illa billah", "This is what Allah has willed. There is no power except through Allah."],
+    ["Inna lillahi wa inna ilayhi raji'un", "We belong to Allah, and to Him we will return."],
+    ["Allahumma bika asbahna, wa bika amsayna, wa bika nahya, wa bika namut, wa ilaykan-nushur", "O Allah, through You we enter the morning and evening. Through You we live and die, and to You is the resurrection."],
+    ["Asbahna wa asbahal-mulku lillah", "We have entered the morning, and all authority belongs to Allah."],
+    ["Allahumma inni as'aluka khayra hadhal-yawm", "O Allah, I ask You for the goodness of this day."],
+    ["Allahumma inni as'alukal-'afwa wal-'afiyah", "O Allah, I ask You for forgiveness and well-being."],
+    ["Allahumma inni as'alukal-huda wat-tuqa wal-'afafa wal-ghina", "O Allah, I ask You for guidance, piety, purity, and contentment."],
+    ["Allahumma inni as'aluka 'ilman nafi'a, wa rizqan tayyiba, wa 'amalan mutaqabbala", "O Allah, I ask You for beneficial knowledge, good lawful provision, and accepted deeds."],
+    ["Allahumma inni a'udhu bika minal-hammi wal-hazan", "O Allah, I seek protection in You from anxiety and sadness."],
+    ["Wa a'udhu bika minal-'ajzi wal-kasal", "I seek protection in You from weakness and laziness."],
+    ["Wa a'udhu bika minal-jubni wal-bukhl", "I seek protection in You from cowardice and stinginess."],
+    ["Wa a'udhu bika min ghalabatid-dayni wa qahrir-rijal", "I seek protection in You from being overcome by debt and controlled by people."],
+    ["Allahumma inni a'udhu bika min 'ilmin la yanfa'", "O Allah, I seek protection in You from knowledge that does not benefit."],
+    ["Ya Muqallibal-qulub, thabbit qalbi 'ala dinik", "O Turner of hearts, keep my heart firm upon Your religion."],
+    ["Allahumma salli wa sallim 'ala nabiyyina Muhammad", "O Allah, send Your blessings and peace upon our Prophet Muhammad."]
+  ];
+  function renderDua() {
+    const parts = getActiveDateString().split('-').map(Number);
+    const d = new Date(parts[0], parts[1] - 1, parts[2]);
+    // Whole days since epoch, rounded to absorb timezone offsets.
+    const days = Math.round(d.getTime() / 86400000);
+    const idx = ((days % DUAS.length) + DUAS.length) % DUAS.length;
+    document.getElementById('duaNum').textContent = idx + 1;
+    document.getElementById('duaText').textContent = DUAS[idx][0];
+    document.getElementById('duaMeaning').textContent = DUAS[idx][1];
+  }
 
   // ---------- Faith ----------
   function faithKey() { return 'faith:' + getActiveDateString(); }
@@ -1375,7 +1475,8 @@ body::after {
   renderStreak();
   updateDayRing();
   updateSleepHoursLabel();
-  setInterval(() => { updateDayRing(); updateSleepHoursLabel(); }, 60 * 1000);
+  renderDua();
+  setInterval(() => { updateDayRing(); updateSleepHoursLabel(); renderDua(); }, 60 * 1000);
   startTicker();
   wireFaith();
   loadFaith();
