@@ -238,9 +238,10 @@ main {
 
 /* ----- Sleep: bedtime / wake inputs ----- */
 .sleep-fields {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;
   margin-bottom: 12px;
 }
+.sleep-field input[type="time"] { min-width: 0; width: 100%; }
 .sleep-field { display: flex; flex-direction: column; gap: 6px; }
 .sleep-field label {
   font-size: 10.5px; color: var(--text-tertiary); font-weight: 700;
@@ -349,8 +350,11 @@ main {
   outline: none; border-color: rgba(255,255,255,0.40);
   background: var(--bg-input-focus);
 }
-.nutri-input-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-.nutri-input-grid input { text-align: center; }
+/* minmax(0,1fr) + min-width:0 — number inputs have a large intrinsic
+   min-width and will overflow the viewport on phones without this. */
+.nutri-input-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.nutri-input-grid input { text-align: center; min-width: 0; }
+.nutri-add-row input { min-width: 0; }
 .nutri-add-btn {
   padding: 11px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.85);
   background: linear-gradient(180deg, #FFFFFF 0%, #E8E5DD 100%);
