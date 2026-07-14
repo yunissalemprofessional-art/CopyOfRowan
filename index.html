@@ -683,7 +683,7 @@ body::after {
     <div class="day-ring-text">
       <div class="day-ring-status"    id="dayRingStatus">Loading…</div>
       <div class="day-ring-remaining" id="dayRingRemaining">—</div>
-      <div class="day-ring-hours" id="dayRingHours">6:00 AM – 10:30 PM</div>
+      <div class="day-ring-hours" id="dayRingHours">5:00 AM – 10:30 PM</div>
     </div>
   </div>
 
@@ -767,9 +767,10 @@ body::after {
   // Paste your Anthropic key here to enable ✨ Polish. Empty = falls back to plain add.
   const ANTHROPIC_API_KEY = '';
 
-  // Aligned with the sleep targets on the Health tab (wake 6:00 AM,
-  // bed 10:30 PM) so the ring math matches the hours shown below it.
-  const WAKE_HOUR  = 6;
+  // FIXED day window: 5:00 AM – 10:30 PM, every day. Deliberately NOT
+  // tied to the sleep times logged on the Health tab — those are for
+  // personal tracking only; the ring window never moves.
+  const WAKE_HOUR  = 5;
   const SLEEP_HOUR = 22.5;
 
   // ---------- storage helpers ----------
@@ -925,6 +926,14 @@ body::after {
       const dateStr = k.slice('goals:'.length);
       if (dateStr >= todayDateStr) return;
       const old = getGoals(k);
+      // Archive the day's outcome BEFORE deleting, so the Review tab
+      // can graph goal completion history week over week.
+      if (old.length > 0) {
+        storeSet('goalsArchive:' + dateStr, {
+          done: old.filter(g => g.done).length,
+          total: old.length
+        });
+      }
       old.forEach(g => {
         if (!g.done && g.text && !texts.has(g.text)) {
           today.push({ text: g.text, done: false });
@@ -1068,23 +1077,6 @@ body::after {
     const h = Math.floor(totalMin / 60);
     const m = Math.floor(totalMin % 60);
     return h + 'h ' + m + 'm';
-  }
-
-  // Sleep tracker (health.html) logs bedtime/wake under sleep:<date> —
-  // same localStorage origin, so this page can read it directly.
-  function fmtTimeFull(hhmm) {
-    let [h, m] = hhmm.split(':').map(Number);
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    h = h % 12; if (h === 0) h = 12;
-    return h + ':' + pad2(m) + ' ' + ampm;
-  }
-  function updateSleepHoursLabel() {
-    const el = document.getElementById('dayRingHours');
-    if (!el) return;
-    const entry = storeGet('sleep:' + getActiveDateString());
-    const wake = (entry && entry.wake) || '06:00';
-    const bed  = (entry && entry.bed)  || '22:30';
-    el.textContent = fmtTimeFull(wake) + ' – ' + fmtTimeFull(bed);
   }
 
   const C = 2 * Math.PI * 52;
@@ -1474,16 +1466,15 @@ body::after {
   loadTomorrow();
   renderStreak();
   updateDayRing();
-  updateSleepHoursLabel();
   renderDua();
-  setInterval(() => { updateDayRing(); updateSleepHoursLabel(); renderDua(); }, 60 * 1000);
+  setInterval(() => { updateDayRing(); renderDua(); }, 60 * 1000);
   startTicker();
   wireFaith();
   loadFaith();
 
   // Re-render when storage changes from another tab (or our bridged parent).
   window.addEventListener('storage', () => {
-    loadToday(); loadTomorrow(); renderStreak(); loadFaith(); updateSleepHoursLabel();
+    loadToday(); loadTomorrow(); renderStreak(); loadFaith();
   });
 })();
 </script>
@@ -1493,7 +1484,7 @@ document.addEventListener('DOMContentLoaded', function () {
   initCloudSync({
     appKey: 'goals',
     syncedKeys: ['goal_streak_v1'],
-    syncedPrefixes: ['goals:', 'faith:'],
+    syncedPrefixes: ['goals:', 'faith:', 'goalsArchive:'],
     onApplied: function () {
       window.dispatchEvent(new CustomEvent('goals-changed'));
       window.dispatchEvent(new Event('storage'));

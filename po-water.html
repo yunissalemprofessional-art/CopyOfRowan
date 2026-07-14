@@ -841,28 +841,46 @@ html, body {
   }
 
   function renderHistory() {
+    // Last 7 days as a line graph (replaces the old horizontal fill
+    // bars, which were hard to read at a glance). Dashed line = daily
+    // target; green dots hit it, red dots missed.
     const list = $('histList');
     const target = Math.ceil(computeTargetMl().total / unitVolMl());
-    // Last 7 days
     const days = [];
-    for (let i = 6; i >= 1; i--) {
+    for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      const k = dateKey(d);
-      const n = state.logs[k] || 0;
-      days.push({ date: d, key: k, count: n });
+      days.push({ date: d, count: state.logs[dateKey(d)] || 0 });
     }
-    list.innerHTML = days.map(({date, count}) => {
-      const dows = ['Sun','Mon','Tue','Wed','THU','Fri','Sat'];
-      const lbl = dows[date.getDay()] + ' ' + (date.getMonth()+1) + '/' + date.getDate();
-      const pct = Math.min(100, (count / target) * 100);
-      const cls = (count >= target) ? '' : 'miss';
-      return '<div class="hist-row">'
-        + '<span class="hist-date">' + lbl + '</span>'
-        + '<div class="hist-bar-wrap"><div class="hist-bar-fill ' + cls + '" style="width:' + pct + '%"></div></div>'
-        + '<span class="hist-count">' + count + '/' + target + '</span>'
-        + '</div>';
-    }).join('') || '<div style="text-align:center;font-size:12px;color:var(--text-3);padding:12px 0">No logs yet.</div>';
+    if (days.every(x => x.count === 0)) {
+      list.innerHTML = '<div style="text-align:center;font-size:12px;color:var(--text-3);padding:12px 0">No logs yet.</div>';
+      return;
+    }
+    const W = 320, H = 120, padX = 16, padTop = 12, padBot = 26;
+    const maxV = Math.max(target, ...days.map(x => x.count)) || 1;
+    const x = (i) => padX + (W - padX * 2) * (i / (days.length - 1));
+    const y = (v) => padTop + (H - padTop - padBot) * (1 - v / maxV);
+    const dows = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+    const pts = days.map((d, i) => [x(i), y(d.count)]);
+    const line = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+    let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;display:block" xmlns="http://www.w3.org/2000/svg">';
+    // target line
+    svg += '<line x1="' + padX + '" y1="' + y(target).toFixed(1) + '" x2="' + (W - padX) + '" y2="' + y(target).toFixed(1)
+        + '" stroke="rgba(255,255,255,0.25)" stroke-width="1" stroke-dasharray="4 4"/>';
+    svg += '<text x="' + (W - padX) + '" y="' + (y(target) - 4).toFixed(1)
+        + '" text-anchor="end" font-size="8" fill="rgba(255,255,255,0.4)" font-family="ui-monospace,monospace">target ' + target + '</text>';
+    // line + dots + labels
+    svg += '<path d="' + line + '" fill="none" stroke="#7DD3FC" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+    days.forEach((d, i) => {
+      const hit = d.count >= target;
+      svg += '<circle cx="' + x(i).toFixed(1) + '" cy="' + y(d.count).toFixed(1) + '" r="3.4" fill="' + (hit ? '#6ee7b7' : '#ff8a8a') + '"/>';
+      svg += '<text x="' + x(i).toFixed(1) + '" y="' + (y(d.count) - 7).toFixed(1)
+          + '" text-anchor="middle" font-size="8.5" fill="rgba(255,255,255,0.65)" font-family="ui-monospace,monospace">' + d.count + '</text>';
+      svg += '<text x="' + x(i).toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="8.5" fill="rgba(255,255,255,0.4)" font-family="ui-monospace,monospace">'
+          + dows[d.date.getDay()] + ' ' + (d.date.getMonth() + 1) + '/' + d.date.getDate() + '</text>';
+    });
+    svg += '</svg>';
+    list.innerHTML = svg;
   }
 
   function renderSparkline(target) {

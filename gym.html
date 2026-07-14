@@ -262,22 +262,65 @@ img, video, canvas, svg { max-width: 100%; }
   content: ''; width: 24px; height: 1px; background: var(--border-strong);
 }
 
-/* ----- Body checkboxes ----- */
-.po-body-list { display: flex; flex-direction: column; gap: 10px; }
-.po-body-row {
-  display: flex; align-items: center; gap: 10px;
-  font-size: 14px; font-weight: 500;
-  color: var(--text-2);
+/* ----- Wollas Method: two big toggle buttons + AM/PM history chart ----- */
+.po-body-list {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.po-body-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 18px 12px 14px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.035);
+  border: 1.5px solid var(--border);
   cursor: pointer;
+  text-align: center;
   -webkit-tap-highlight-color: transparent;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.25s;
+  user-select: none;
 }
-.po-body-row input[type="checkbox"] {
-  width: 18px; height: 18px;
-  accent-color: var(--good);
-  cursor: pointer;
-  flex-shrink: 0;
+.po-body-btn input[type="checkbox"] { display: none; }
+.po-body-ico { font-size: 28px; line-height: 1; }
+.po-body-name {
+  font-size: 14px; font-weight: 700; color: var(--text-1);
+  margin-top: 4px;
 }
-.po-body-row.checked { color: var(--text-1); }
+.po-body-when {
+  font-family: var(--font-mono);
+  font-size: 9.5px; font-weight: 800;
+  letter-spacing: 0.16em;
+  color: var(--text-3);
+}
+.po-body-state {
+  margin-top: 8px;
+  font-size: 11px; font-weight: 700;
+  padding: 4px 12px; border-radius: 999px;
+  background: rgba(255,255,255,0.05);
+  color: var(--text-3);
+}
+.po-body-btn.am.checked {
+  border-color: rgba(242,192,99,0.55);
+  background: rgba(242,192,99,0.08);
+  box-shadow: 0 0 18px rgba(242,192,99,0.12);
+}
+.po-body-btn.am.checked .po-body-state { background: rgba(242,192,99,0.18); color: #F2C063; }
+.po-body-btn.pm.checked {
+  border-color: rgba(167,139,250,0.55);
+  background: rgba(167,139,250,0.08);
+  box-shadow: 0 0 18px rgba(167,139,250,0.12);
+}
+.po-body-btn.pm.checked .po-body-state { background: rgba(167,139,250,0.18); color: #A78BFA; }
+.po-body-chart-wrap { margin-top: 14px; }
+.po-body-legend {
+  display: flex; justify-content: center; gap: 18px;
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 9.5px; font-weight: 700; letter-spacing: 0.12em;
+  color: var(--text-3);
+}
+.po-body-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.po-body-legend i {
+  width: 14px; height: 3px; border-radius: 2px; display: inline-block;
+}
 
 /* ----- Bodyweight banner ----- */
 .po-bw-banner {
@@ -1395,8 +1438,25 @@ img, video, canvas, svg { max-width: 100%; }
     <div class="po-sub-section">
       <div class="po-sub-title">Body</div>
       <div class="po-body-list" id="bodyList">
-        <label class="po-body-row"><input type="checkbox" data-body="am"> Wollas Method — AM</label>
-        <label class="po-body-row"><input type="checkbox" data-body="pm"> Wollas Method — PM</label>
+        <label class="po-body-btn am"><input type="checkbox" data-body="am">
+          <span class="po-body-ico">🌅</span>
+          <span class="po-body-name">Wollas Method</span>
+          <span class="po-body-when">MORNING</span>
+          <span class="po-body-state" data-role="state">Not done</span>
+        </label>
+        <label class="po-body-btn pm"><input type="checkbox" data-body="pm">
+          <span class="po-body-ico">🌙</span>
+          <span class="po-body-name">Wollas Method</span>
+          <span class="po-body-when">NIGHT</span>
+          <span class="po-body-state" data-role="state">Not done</span>
+        </label>
+      </div>
+      <div class="po-body-chart-wrap">
+        <div id="bodyChart"></div>
+        <div class="po-body-legend">
+          <span><i style="background:#F2C063"></i>MORNING</span>
+          <span><i style="background:#A78BFA"></i>NIGHT</span>
+        </div>
       </div>
     </div>
   </div>
@@ -1881,8 +1941,49 @@ img, video, canvas, svg { max-width: 100%; }
     document.querySelectorAll('#bodyList input[type="checkbox"]').forEach((cb) => {
       const on = !!today[cb.dataset.body];
       cb.checked = on;
-      cb.closest('.po-body-row').classList.toggle('checked', on);
+      const btn = cb.closest('.po-body-btn');
+      btn.classList.toggle('checked', on);
+      btn.querySelector('[data-role="state"]').textContent = on ? '✓ Done' : 'Not done';
     });
+    renderBodyChart();
+  }
+  // Two-line history chart: amber = morning Wollas, violet = night.
+  // Last 14 days; dot high = done, dot low = missed.
+  function renderBodyChart() {
+    const el = document.getElementById('bodyChart');
+    if (!el) return;
+    const DAYS = 14;
+    const W = 320, H = 96, padX = 14, padT = 12, padB = 20;
+    const yDone = padT + 8, yMiss = H - padB - 8;
+    const days = [];
+    for (let i = DAYS - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const rec = bodyDays[wtDateKey(d)] || {};
+      days.push({ d, am: !!rec.am, pm: !!rec.pm });
+    }
+    const x = (i) => padX + (W - padX * 2) * (i / (DAYS - 1));
+    // PM line drawn 4px below AM so overlapping days stay readable.
+    const yFor = (done, off) => (done ? yDone : yMiss) + off;
+    const linePath = (get, off) => days.map((v, i) =>
+      (i === 0 ? 'M' : 'L') + x(i).toFixed(1) + ' ' + yFor(get(v), off).toFixed(1)).join(' ');
+    let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;display:block" xmlns="http://www.w3.org/2000/svg">';
+    s += '<text x="2" y="' + (yDone + 3) + '" font-size="7.5" fill="rgba(255,255,255,0.35)" font-family="ui-monospace,monospace">✓</text>';
+    s += '<text x="2" y="' + (yMiss + 3) + '" font-size="7.5" fill="rgba(255,255,255,0.35)" font-family="ui-monospace,monospace">✗</text>';
+    s += '<line x1="' + padX + '" y1="' + yDone + '" x2="' + (W - padX) + '" y2="' + yDone + '" stroke="rgba(255,255,255,0.06)"/>';
+    s += '<line x1="' + padX + '" y1="' + yMiss + '" x2="' + (W - padX) + '" y2="' + yMiss + '" stroke="rgba(255,255,255,0.06)"/>';
+    s += '<path d="' + linePath(v => v.am, 0) + '" fill="none" stroke="#F2C063" stroke-width="2" stroke-linejoin="round" opacity="0.9"/>';
+    s += '<path d="' + linePath(v => v.pm, 4) + '" fill="none" stroke="#A78BFA" stroke-width="2" stroke-linejoin="round" opacity="0.9"/>';
+    days.forEach((v, i) => {
+      s += '<circle cx="' + x(i).toFixed(1) + '" cy="' + yFor(v.am, 0).toFixed(1) + '" r="3" fill="#F2C063"/>';
+      s += '<circle cx="' + x(i).toFixed(1) + '" cy="' + yFor(v.pm, 4).toFixed(1) + '" r="3" fill="#A78BFA"/>';
+      if (i % 2 === (DAYS - 1) % 2) {
+        s += '<text x="' + x(i).toFixed(1) + '" y="' + (H - 5) + '" text-anchor="middle" font-size="8" fill="rgba(255,255,255,0.4)" font-family="ui-monospace,monospace">'
+          + (v.d.getMonth() + 1) + '/' + v.d.getDate() + '</text>';
+      }
+    });
+    s += '</svg>';
+    el.innerHTML = s;
   }
 
   // ============================================================
@@ -2048,7 +2149,7 @@ img, video, canvas, svg { max-width: 100%; }
     if (cb.checked) today[cb.dataset.body] = true; else delete today[cb.dataset.body];
     bodyDays[todayKey] = today;
     saveBodyDays(bodyDays);
-    cb.closest('.po-body-row').classList.toggle('checked', cb.checked);
+    renderBody();
   });
   // ============================================================
   // EVENT WIRING — one delegated listener covers every exercise card,

@@ -160,6 +160,9 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
   <a href="finance.html" class="bottombar-tab" data-page="finance">
     <span class="bottombar-tab-icon">📊</span><span>Finance</span>
   </a>
+  <a href="review.html" class="bottombar-tab" data-page="review">
+    <span class="bottombar-tab-icon">📈</span><span>Review</span>
+  </a>
 </nav>`;
 
   function isEmbedded() {
@@ -172,6 +175,7 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
     if (p.endsWith('gym.html')) return 'fitness';
     if (p.endsWith('content.html')) return 'content';
     if (p.endsWith('finance.html')) return 'finance';
+    if (p.endsWith('review.html')) return 'review';
     return 'main';
   }
 

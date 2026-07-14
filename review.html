@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050506">
+<meta name="color-scheme" content="dark">
+<title>Weekly Review</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="topbar.js" defer></script>
+<style>
+:root {
+  --bg: #050506;
+  --bg-card: rgba(255, 255, 255, 0.04);
+  --bg-secondary: rgba(255, 255, 255, 0.035);
+  --border-soft: rgba(255, 255, 255, 0.04);
+  --border-strong: rgba(255, 255, 255, 0.12);
+  --text-primary: #FAFAFA;
+  --text-secondary: #B8B6B0;
+  --text-tertiary: #76746E;
+  --text-quaternary: #4D4B47;
+  --good: #6BE3A4;
+  --warn: #F2C063;
+  --bad: #FF8A8A;
+  --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg);
+  color: var(--text-secondary);
+  font-family: var(--font);
+  font-size: 15px; line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+body { min-height: 100vh; position: relative; overflow-x: hidden; }
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background:
+    radial-gradient(60% 50% at 82% 14%, rgba(224, 118, 88, 0.16) 0%, transparent 60%),
+    radial-gradient(50% 40% at 18% 90%, rgba(180, 180, 200, 0.06) 0%, transparent 60%);
+  filter: blur(40px);
+  pointer-events: none; z-index: 0;
+}
+main {
+  position: relative; z-index: 2;
+  max-width: 720px; margin: 0 auto;
+  padding: 24px 20px 80px;
+}
+.section-title {
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin: 0 4px 14px;
+  display: flex; align-items: center; gap: 12px;
+}
+.section-title::before { content: '≡'; font-size: 14px; opacity: 0.5; }
+
+.card {
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 12px;
+  backdrop-filter: blur(24px) saturate(1.2);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+}
+
+/* week switcher */
+.week-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin-bottom: 16px;
+}
+.week-nav button {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 16px; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.week-nav button:disabled { opacity: 0.3; cursor: default; }
+.week-label {
+  font-family: var(--font-mono);
+  font-size: 13px; font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+}
+.week-label small {
+  display: block; font-size: 10px; font-weight: 600;
+  color: var(--text-tertiary); letter-spacing: 0.1em; text-transform: uppercase;
+}
+
+/* tab cards */
+.tab-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.tab-name {
+  font-size: 14px; font-weight: 700; color: var(--text-primary);
+  display: flex; align-items: center; gap: 8px;
+}
+.tab-name .ico { font-size: 16px; }
+.tab-score {
+  font-family: var(--font-mono);
+  font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums;
+}
+.tab-score small { font-size: 10px; color: var(--text-tertiary); font-weight: 600; }
+.tab-sub { font-size: 11px; color: var(--text-tertiary); margin-top: 8px; line-height: 1.45; }
+
+/* big score */
+.final-card { text-align: center; padding: 26px 18px; }
+.final-label {
+  font-family: var(--font-mono);
+  font-size: 10.5px; font-weight: 700;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 8px;
+}
+.final-num {
+  font-size: 64px; font-weight: 800; line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+}
+.final-num small { font-size: 22px; color: var(--text-tertiary); font-weight: 600; }
+.final-grade { margin-top: 6px; font-size: 13px; font-weight: 700; }
+
+/* day rows */
+.day-row {
+  display: grid; grid-template-columns: 44px 1fr 52px;
+  gap: 12px; align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+.day-row:last-child { border-bottom: none; }
+.day-row-name { font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary); font-weight: 700; }
+.day-row-bar { height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; }
+.day-row-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+.day-row-score {
+  font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+  text-align: right; font-variant-numeric: tabular-nums;
+}
+.attribution {
+  text-align: center; margin-top: 24px;
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--text-quaternary);
+}
+.score-note { font-size: 11px; color: var(--text-quaternary); line-height: 1.5; }
+svg { display: block; }
+@media (max-width: 600px) {
+  main { padding: 18px 14px 60px; }
+  .card { padding: 14px; }
+  .final-num { font-size: 52px; }
+}
+</style>
+</head>
+<body>
+
+<main>
+  <div class="section-title">Weekly Review</div>
+
+  <div class="week-nav">
+    <button type="button" id="prevWeek" aria-label="Previous week">‹</button>
+    <div class="week-label" id="weekLabel"><small>Week of</small>—</div>
+    <button type="button" id="nextWeek" aria-label="Next week">›</button>
+  </div>
+
+  <div class="final-card card">
+    <div class="final-label">Week Score</div>
+    <div class="final-num" id="finalNum">—<small>/100</small></div>
+    <div class="final-grade" id="finalGrade"></div>
+  </div>
+
+  <div class="card">
+    <div class="tab-head">
+      <span class="tab-name"><span class="ico">📊</span>Daily Scores</span>
+    </div>
+    <div id="bigChart"></div>
+    <div id="dayRows" style="margin-top:12px"></div>
+  </div>
+
+  <div class="section-title" style="margin-top:28px">Per-Tab Breakdown</div>
+  <div id="tabCards"></div>
+
+  <div class="card">
+    <div class="score-note" id="scoreNote"></div>
+  </div>
+
+  <div class="attribution">// live — recalculates every time you open it</div>
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  const storeGet = (k) => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } };
+
+  // ---------- dates ----------
+  function pad2(n) { return String(n).padStart(2, '0'); }
+  function keyOf(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+  function parseKey(k) { const p = k.split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); }
+  // Active "today" with the dashboard's 6 AM boundary.
+  function activeToday() {
+    const d = new Date();
+    if (d.getHours() < 6) d.setDate(d.getDate() - 1);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+  function mondayOf(d) {
+    const day = d.getDay();
+    const m = new Date(d);
+    m.setDate(d.getDate() + ((day === 0 ? -6 : 1) - day));
+    m.setHours(0, 0, 0, 0);
+    return m;
+  }
+
+  // ---------- scoring helpers (0–100 or null = no data) ----------
+  const clamp100 = (v) => Math.max(0, Math.min(100, Math.round(v)));
+
+  function scoreFaith(k) {
+    const f = storeGet('faith:' + k);
+    if (!f || typeof f !== 'object') return null;
+    const n = ['fajr','dhuhr','asr','maghrib','isha'].filter(p => f[p]).length;
+    return clamp100(n / 5 * 100);
+  }
+
+  function scoreGoals(k, isToday) {
+    if (isToday) {
+      const g = storeGet('goals:' + k);
+      if (Array.isArray(g) && g.length) return clamp100(g.filter(x => x.done).length / g.length * 100);
+      return null;
+    }
+    const a = storeGet('goalsArchive:' + k);
+    if (a && a.total > 0) return clamp100(a.done / a.total * 100);
+    return null;
+  }
+
+  function timeToMin(hhmm) { const [h, m] = String(hhmm).split(':').map(Number); return h * 60 + m; }
+  function bedMinNorm(hhmm) { let m = timeToMin(hhmm); if (m < 720) m += 1440; return m; }
+  function scoreSleep(k) {
+    const s = storeGet('sleep:' + k);
+    if (!s || (!s.bed && !s.wake)) return null;
+    let pts = 0, max = 0;
+    if (s.bed) {
+      max += 50;
+      const b = bedMinNorm(s.bed);
+      if (b <= timeToMin('22:30')) pts += 50;
+      else if (b <= timeToMin('23:30')) pts += 25;
+    }
+    if (s.wake) {
+      max += 50;
+      const w = timeToMin(s.wake);
+      if (w <= timeToMin('06:00')) pts += 50;
+      else if (w <= timeToMin('09:00')) pts += 25;
+    }
+    return max ? clamp100(pts / max * 100) : null;
+  }
+
+  // Gym: split day comes from the same rotation math as gym.html.
+  function gymState() { return storeGet('po_coach_v1') || {}; }
+  function splitNameFor(dateObj) {
+    const s = gymState();
+    const rot = Array.isArray(s.splitRotation) && s.splitRotation.length ? s.splitRotation : null;
+    if (!rot || !s.splitAnchor || !s.splitAnchor.date) return null;
+    const a = parseKey(String(s.splitAnchor.date).slice(0, 10));
+    const t = new Date(dateObj); t.setHours(0,0,0,0);
+    const diff = Math.round((t - a) / 86400000);
+    const idx = (((s.splitAnchor.index || 0) + diff) % rot.length + rot.length) % rot.length;
+    return rot[idx];
+  }
+  function liftedOn(k) {
+    if ((storeGet('po_coach_workout_done') || {})[k]) return true;
+    const logs = gymState().logs || {};
+    for (const exId of Object.keys(logs)) {
+      if ((logs[exId] || []).some(l => l && String(l.date).slice(0, 10) === k)) return true;
+    }
+    return false;
+  }
+  function scoreFitness(k, dateObj) {
+    const body = (storeGet('po_coach_body') || {})[k] || {};
+    const wollas = (body.am ? 1 : 0) + (body.pm ? 1 : 0);
+    const split = (splitNameFor(dateObj) || '').toLowerCase();
+    const lifting = ['push', 'pull', 'legs'].includes(split);
+    const lifted = liftedOn(k);
+    if (!lifting) {
+      // Sprint/Rest day: only Wollas is trackable.
+      if (wollas === 0 && !lifted) return null;
+      return clamp100(wollas / 2 * 100);
+    }
+    // Lifting day: workout 60, Wollas 20+20.
+    if (!lifted && wollas === 0) return 0;
+    return clamp100((lifted ? 60 : 0) + wollas * 20);
+  }
+
+  function scoreVitamins(k) {
+    const v = storeGet('vitamins:' + k);
+    if (!v || typeof v !== 'object') return null;
+    const n = Object.values(v).filter(Boolean).length;
+    return clamp100(n / 12 * 100);
+  }
+
+  // Water: same target formula as the tracker/topbar.
+  function waterTarget(state) {
+    const p = state.profile || { weightKg: 75 };
+    const wKg = state.weightUnit === 'lb' ? (p.weightKg || 0) / 2.20462 : (p.weightKg || 0);
+    let total = wKg * 35
+      + (p.activityHrsPerWeek || 0) / 7 * 500
+      + Math.max(0, (state.caffeineMgPerDay || 0) - 200) * 1.5
+      + (state.substances || []).reduce((s, x) => {
+          const dose = (x && x.dose != null ? x.dose : (x && x.defaultDose)) || 0;
+          return s + Math.max(0, dose * ((x && x.mlPerUnit) || 0));
+        }, 0);
+    if (p.sex === 'm') total += 200;
+    if ((p.age || 0) >= 50) total += 100;
+    let unitVol;
+    if (state.unit === 'glass') unitVol = state.glassMl || 250;
+    else if (state.unit === 'oz') unitVol = 30;
+    else if (state.unit === 'ml') unitVol = 1;
+    else unitVol = state.bottleMl || 500;
+    return Math.max(1, Math.ceil(total / unitVol));
+  }
+  function scoreWater(k) {
+    const st = storeGet('po_water_v1');
+    if (!st || !st.logs) return null;
+    const n = st.logs[k];
+    if (n == null) return null;
+    return clamp100(n / waterTarget(st) * 100);
+  }
+
+  function scoreNutrition(k) {
+    const meals = storeGet('nutrition:' + k);
+    if (!Array.isArray(meals) || !meals.length) return null;
+    const t = Object.assign({ protein: 260 }, storeGet('nutrition_targets_v1') || {});
+    const protein = meals.reduce((s, m) => s + (Number(m.protein) || 0), 0);
+    return clamp100(protein / (t.protein || 260) * 100);
+  }
+
+  function scoreContent(k) {
+    const c = storeGet('content:' + k);
+    if (!c || typeof c !== 'object' || !Object.keys(c).length) return null;
+    const n = ['instagram','tiktok','youtube','x','threads'].filter(p => c[p]).length;
+    return clamp100(n / 5 * 100);
+  }
+
+  const TABS = [
+    { id: 'faith',    name: 'Faith',     ico: '🕌', fn: (k) => scoreFaith(k),               sub: '5 daily prayers' },
+    { id: 'goals',    name: 'Goals',     ico: '🎯', fn: (k, d, t) => scoreGoals(k, t),      sub: 'daily to-do completion' },
+    { id: 'fitness',  name: 'Fitness',   ico: '💪', fn: (k, d) => scoreFitness(k, d),       sub: 'scheduled workout + Wollas AM/PM' },
+    { id: 'sleep',    name: 'Sleep',     ico: '😴', fn: (k) => scoreSleep(k),               sub: 'bed by 10:30 PM · wake by 6 AM' },
+    { id: 'vitamins', name: 'Vitamins',  ico: '💊', fn: (k) => scoreVitamins(k),            sub: '12 daily supplements' },
+    { id: 'water',    name: 'Water',     ico: '💧', fn: (k) => scoreWater(k),               sub: 'drinks vs daily target' },
+    { id: 'nutrition',name: 'Nutrition', ico: '🍗', fn: (k) => scoreNutrition(k),           sub: 'protein vs daily target' },
+    { id: 'content',  name: 'Content',   ico: '📣', fn: (k) => scoreContent(k),             sub: 'platforms posted (of 5)' }
+  ];
+
+  // ---------- week computation ----------
+  let weekOffset = 0; // 0 = current week, -1 = last week...
+
+  function computeWeek() {
+    const monday = mondayOf(activeToday());
+    monday.setDate(monday.getDate() + weekOffset * 7);
+    const today = activeToday();
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      const k = keyOf(d);
+      const isToday = d.getTime() === today.getTime();
+      const future = d.getTime() > today.getTime();
+      const scores = {};
+      let vals = [];
+      if (!future) {
+        TABS.forEach(t => {
+          const v = t.fn(k, d, isToday);
+          scores[t.id] = v;
+          if (v != null) vals.push(v);
+        });
+      }
+      days.push({
+        date: d, key: k, future, isToday,
+        scores,
+        overall: vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null
+      });
+    }
+    return { monday, days };
+  }
+
+  // ---------- rendering ----------
+  const col = (v) => v == null ? 'rgba(255,255,255,0.10)' : v >= 80 ? 'var(--good)' : v >= 50 ? 'var(--warn)' : 'var(--bad)';
+  const colRaw = (v) => v == null ? 'rgba(255,255,255,0.10)' : v >= 80 ? '#6BE3A4' : v >= 50 ? '#F2C063' : '#FF8A8A';
+  const DOW = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+  function miniBars(days, tabId) {
+    // 7 vertical bars, 0–100.
+    const W = 320, H = 74, padB = 16, bw = 26, gap = (W - 7 * bw) / 8;
+    let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%" xmlns="http://www.w3.org/2000/svg">';
+    days.forEach((d, i) => {
+      const v = d.future ? null : d.scores[tabId];
+      const x = gap + i * (bw + gap);
+      const h = v == null ? 3 : Math.max(3, (H - padB - 6) * v / 100);
+      const y = H - padB - h;
+      s += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + bw + '" height="' + h.toFixed(1)
+        + '" rx="3" fill="' + colRaw(v) + '"' + (v == null ? ' opacity="0.5"' : '') + '/>';
+      if (v != null) {
+        s += '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (y - 3).toFixed(1)
+          + '" text-anchor="middle" font-size="8" fill="rgba(255,255,255,0.55)" font-family="ui-monospace,monospace">' + v + '</text>';
+      }
+      s += '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (H - 4)
+        + '" text-anchor="middle" font-size="8.5" fill="rgba(255,255,255,0.4)" font-family="ui-monospace,monospace">' + DOW[i][0] + '</text>';
+    });
+    s += '</svg>';
+    return s;
+  }
+
+  function bigChart(days) {
+    const W = 320, H = 130, padX = 18, padT = 14, padB = 22;
+    const pts = [];
+    days.forEach((d, i) => {
+      if (d.overall != null) pts.push([padX + (W - padX * 2) * (i / 6), padT + (H - padT - padB) * (1 - d.overall / 100), d.overall, i]);
+    });
+    let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%" xmlns="http://www.w3.org/2000/svg">';
+    [0, 50, 100].forEach(g => {
+      const gy = padT + (H - padT - padB) * (1 - g / 100);
+      s += '<line x1="' + padX + '" y1="' + gy + '" x2="' + (W - padX) + '" y2="' + gy + '" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>';
+      s += '<text x="2" y="' + (gy + 3) + '" font-size="7.5" fill="rgba(255,255,255,0.3)" font-family="ui-monospace,monospace">' + g + '</text>';
+    });
+    if (pts.length >= 2) {
+      const line = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+      s += '<path d="' + line + '" fill="none" stroke="#7DD3FC" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+    }
+    pts.forEach(p => {
+      s += '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="3.6" fill="' + colRaw(p[2]) + '"/>';
+    });
+    days.forEach((d, i) => {
+      const x = padX + (W - padX * 2) * (i / 6);
+      s += '<text x="' + x.toFixed(1) + '" y="' + (H - 6) + '" text-anchor="middle" font-size="8.5" fill="rgba(255,255,255,0.4)" font-family="ui-monospace,monospace">' + DOW[i] + '</text>';
+    });
+    if (!pts.length) {
+      s += '<text x="' + (W / 2) + '" y="' + (H / 2) + '" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.35)" font-family="ui-monospace,monospace">No data this week yet</text>';
+    }
+    s += '</svg>';
+    return s;
+  }
+
+  function gradeWord(v) {
+    if (v == null) return '';
+    if (v >= 90) return 'Locked in.';
+    if (v >= 80) return 'Strong week.';
+    if (v >= 65) return 'Solid — tighten up.';
+    if (v >= 50) return 'Half-stepping. Push.';
+    return 'Rough week. Reset Monday.';
+  }
+
+  function render() {
+    const { monday, days } = computeWeek();
+    const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
+    const mons = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    document.getElementById('weekLabel').innerHTML = '<small>Week of</small>'
+      + mons[monday.getMonth()] + ' ' + monday.getDate() + ' – ' + mons[sunday.getMonth()] + ' ' + sunday.getDate();
+    document.getElementById('nextWeek').disabled = weekOffset >= 0;
+
+    // final score = average of days that have any data
+    const tracked = days.filter(d => d.overall != null);
+    const finalScore = tracked.length ? Math.round(tracked.reduce((a, d) => a + d.overall, 0) / tracked.length) : null;
+    const fn = document.getElementById('finalNum');
+    fn.innerHTML = (finalScore == null ? '—' : finalScore) + '<small>/100</small>';
+    fn.style.color = finalScore == null ? 'var(--text-tertiary)' : colRaw(finalScore);
+    const fg = document.getElementById('finalGrade');
+    fg.textContent = finalScore == null ? 'No data yet this week' : gradeWord(finalScore);
+    fg.style.color = finalScore == null ? 'var(--text-tertiary)' : colRaw(finalScore);
+
+    // big chart + day rows
+    document.getElementById('bigChart').innerHTML = bigChart(days);
+    document.getElementById('dayRows').innerHTML = days.map((d, i) => {
+      const v = d.overall;
+      const label = d.future ? '—' : (v == null ? 'no data' : v);
+      return '<div class="day-row">'
+        + '<span class="day-row-name">' + DOW[i] + (d.isToday ? ' •' : '') + '</span>'
+        + '<div class="day-row-bar"><div class="day-row-fill" style="width:' + (v || 0) + '%;background:' + colRaw(v) + '"></div></div>'
+        + '<span class="day-row-score" style="color:' + (v == null ? 'var(--text-quaternary)' : colRaw(v)) + '">' + label + '</span>'
+        + '</div>';
+    }).join('');
+
+    // per-tab cards
+    document.getElementById('tabCards').innerHTML = TABS.map(t => {
+      const vals = days.filter(d => !d.future && d.scores[t.id] != null).map(d => d.scores[t.id]);
+      const avg = vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null;
+      return '<div class="card">'
+        + '<div class="tab-head">'
+        +   '<span class="tab-name"><span class="ico">' + t.ico + '</span>' + t.name + '</span>'
+        +   '<span class="tab-score" style="color:' + (avg == null ? 'var(--text-quaternary)' : colRaw(avg)) + '">'
+        +     (avg == null ? '—' : avg) + '<small>/100</small></span>'
+        + '</div>'
+        + miniBars(days, t.id)
+        + '<div class="tab-sub">' + t.sub + (avg == null ? ' · no data this week' : '') + '</div>'
+        + '</div>';
+    }).join('');
+
+    document.getElementById('scoreNote').innerHTML =
+      '<strong style="color:var(--text-tertiary)">HOW SCORING WORKS</strong><br>'
+      + 'Each tab scores 0–100 per day: Faith = prayers ÷ 5 · Goals = done ÷ total · '
+      + 'Fitness = workout logged (60) + Wollas AM/PM (20 each); sprint/rest days = Wollas only · '
+      + 'Sleep = bed by 10:30 PM (50) + wake by 6 AM (50), partial credit up to 11:30 PM / 9 AM · '
+      + 'Vitamins = taken ÷ 12 · Water = drinks ÷ target · Nutrition = protein ÷ target · '
+      + 'Content = platforms ÷ 5. A day’s score is the average of everything you tracked that day; '
+      + 'untracked items don’t count against you. The week score is the average of tracked days. '
+      + 'Everything recalculates live from your saved history whenever you open this tab.';
+  }
+
+  document.getElementById('prevWeek').addEventListener('click', () => { weekOffset--; render(); });
+  document.getElementById('nextWeek').addEventListener('click', () => { if (weekOffset < 0) { weekOffset++; render(); } });
+
+  render();
+  window.addEventListener('storage', render);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
+})();
+</script>
+
+</body>
+</html>
