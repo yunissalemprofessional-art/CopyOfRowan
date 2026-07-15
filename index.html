@@ -738,6 +738,19 @@ body::after {
       </div>
     </div>
 
+    <!-- YESTERDAY (read-only recap, rolls forward every day) -->
+    <div class="gm-card gm-card-tomorrow" id="gmCardYesterday">
+      <div class="gm-header">
+        <div class="gm-header-left">
+          <div class="gm-eyebrow" id="yesterdayLabel">Yesterday —</div>
+          <div class="gm-tomorrow-sub">How you closed out the day before.</div>
+        </div>
+        <div class="gm-tomorrow-count" id="gmYesterdayCount">—</div>
+      </div>
+      <ul id="yesterdayList" class="goal-list gm-list"></ul>
+      <div id="yesterdayEmpty" class="empty-state">No goals were set yesterday.</div>
+    </div>
+
     <!-- PLAN TOMORROW -->
     <div class="gm-card gm-card-tomorrow" id="gmCardTomorrow">
       <div class="gm-header">
@@ -931,7 +944,8 @@ body::after {
       if (old.length > 0) {
         storeSet('goalsArchive:' + dateStr, {
           done: old.filter(g => g.done).length,
-          total: old.length
+          total: old.length,
+          goals: old.map(g => ({ text: g.text, done: !!g.done }))
         });
       }
       old.forEach(g => {
@@ -1351,6 +1365,50 @@ body::after {
     renderListInto(goals, document.getElementById('tomorrowList'), document.getElementById('tomorrowEmpty'), tomorrowKey(), true);
   }
 
+  // ---------- Yesterday recap (read-only) ----------
+  function getYesterdayDateString() {
+    const parts = getActiveDateString().split('-').map(Number);
+    const d = new Date(parts[0], parts[1] - 1, parts[2]);
+    d.setDate(d.getDate() - 1);
+    return dateToKey(d);
+  }
+  function loadYesterday() {
+    const yk = getYesterdayDateString();
+    // Archived at rollover; fall back to a still-live goals: key (page
+    // left open across the 6 AM boundary before any reload).
+    const archived = storeGet('goalsArchive:' + yk);
+    const live = getGoals('goals:' + yk);
+    const goals = (archived && Array.isArray(archived.goals)) ? archived.goals : live;
+    document.getElementById('yesterdayLabel').textContent = 'Yesterday — ' + formatDate(yk);
+    const listEl = document.getElementById('yesterdayList');
+    const emptyEl = document.getElementById('yesterdayEmpty');
+    const countEl = document.getElementById('gmYesterdayCount');
+    listEl.innerHTML = '';
+    if (!goals || goals.length === 0) {
+      emptyEl.style.display = 'block';
+      countEl.textContent = '—';
+      return;
+    }
+    emptyEl.style.display = 'none';
+    const done = goals.filter(g => g.done).length;
+    countEl.textContent = done + '/' + goals.length + ' done';
+    goals.forEach((g) => {
+      const li = document.createElement('li');
+      li.className = 'gm-row' + (g.done ? ' gm-row-done' : '');
+      const mark = document.createElement('span');
+      mark.style.cssText = 'width:22px;flex-shrink:0;text-align:center;font-weight:700;'
+        + (g.done ? 'color:var(--success);' : 'color:var(--text-tertiary);');
+      mark.textContent = g.done ? '✓' : '○';
+      li.appendChild(mark);
+      const text = document.createElement('span');
+      text.className = 'gm-text';
+      text.style.cursor = 'default';
+      text.textContent = g.text;
+      li.appendChild(text);
+      listEl.appendChild(li);
+    });
+  }
+
   // ---------- Push remaining ----------
   document.getElementById('gmPushBtn').addEventListener('click', () => {
     const today    = getGoals(todayKey());
@@ -1464,17 +1522,18 @@ body::after {
   rollover();
   loadToday();
   loadTomorrow();
+  loadYesterday();
   renderStreak();
   updateDayRing();
   renderDua();
-  setInterval(() => { updateDayRing(); renderDua(); }, 60 * 1000);
+  setInterval(() => { updateDayRing(); renderDua(); loadYesterday(); }, 60 * 1000);
   startTicker();
   wireFaith();
   loadFaith();
 
   // Re-render when storage changes from another tab (or our bridged parent).
   window.addEventListener('storage', () => {
-    loadToday(); loadTomorrow(); renderStreak(); loadFaith();
+    loadToday(); loadTomorrow(); loadYesterday(); renderStreak(); loadFaith();
   });
 })();
 </script>
